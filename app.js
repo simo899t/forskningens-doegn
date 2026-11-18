@@ -1,7 +1,24 @@
 (function () {
   "use strict";
 
-  var DATA = window.EXPLORER;
+  // ---------------- language ----------------
+  // Danish (content.da.js) only holds words. It is laid over the English tree, so both stay in step.
+  function merge(base, over) {
+    if (over == null) return base;
+    if (Array.isArray(base)) return base.map(function (b, i) { return merge(b, over[i]); });
+    if (base && typeof base === "object") {
+      var out = {};
+      Object.keys(base).forEach(function (k) { out[k] = merge(base[k], over[k]); });
+      return out;
+    }
+    return over;
+  }
+  var LANG = "en";
+  try { LANG = localStorage.getItem("ai-safety-lang") === "da" ? "da" : "en"; } catch (e) { /* no storage */ }
+  if (/[?&]lang=da\b/.test(location.search)) LANG = "da";
+  if (/[?&]lang=en\b/.test(location.search)) LANG = "en";
+  function build() { return LANG === "da" && window.EXPLORER_DA ? merge(window.EXPLORER, window.EXPLORER_DA) : window.EXPLORER; }
+  var DATA = build();
   var app = document.getElementById("app");
   var STORE = "ai-safety-visited-v2";
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -24,6 +41,30 @@
     flask: '<path d="M9 3h6M10 3v6L4.5 18.5A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.5L14 9V3"/><path d="M7 15h10"/>',
     redo: '<path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6"/><path d="M4 4v4.6h4.6"/>',
     power: '<path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4V5z"/>',
+    question: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
+    list: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',
+    pulse: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
+    bell: '<path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+    toggle: '<rect x="2" y="7" width="20" height="10" rx="5"/><circle cx="7" cy="12" r="3"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+    star: '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9L12 3z"/>',
+    thumb: '<path d="M7 11v9H4v-9h3zM7 11l4-8a2 2 0 0 1 2 2v4h6a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.8 20H7"/>',
+    loop: '<path d="M4 12a8 8 0 0 1 14-5.3L20 9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5.3L4 15"/><path d="M4 20v-5h5"/>',
+    scroll: '<path d="M6 3h11v14a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-1h11v1"/><path d="M9 8h5M9 12h5"/>',
+    ban: '<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
+    building: '<path d="M4 21V5l8-2v18M12 7l8 2v12M2 21h20"/><path d="M8 9h.01M8 13h.01M8 17h.01M16 13h.01M16 17h.01"/>',
+    filter: '<path d="M3 4h18l-7 8v6l-4 2v-8L3 4z"/>',
+    tag: '<path d="M3 12V3h9l9 9-9 9-9-9z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+    gauge: '<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/>',
+    drop: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    card: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>',
+    box: '<path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
     grid: '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
   };
   function icon(name, cls) {
@@ -51,6 +92,15 @@
   }
   function stepHref(sol, path) { return "#/s/" + sol.id + "/r" + path; }
   function go(h) { location.hash = h; }
+  // One look for every choice on the site: a round badge with a number and a symbol, then a title and a short line.
+  var CHOICE_COLORS = ["#ef3b55", "#f5b700", "#2ec4b6", "#5b7cfa", "#c084fc", "#fb7185"];
+  function choice(href, label, desc, iconName, i, cls) {
+    var n = (i + 1 < 10 ? "0" : "") + (i + 1);
+    return '<a class="choice ' + (cls || "") + '" style="--i:' + i + ";--cc:" + (cls === "choice-win" ? "#7f1d1d" : CHOICE_COLORS[i % CHOICE_COLORS.length]) + '" href="' + href + '">' +
+      '<span class="ch-badge" aria-hidden="true"><span class="ch-tail"></span><span class="ch-disc">' + icon(iconName || "check") + "</span>" +
+      '<span class="ch-cap"><small>' + esc(DATA.ui.option) + "</small><b>" + n + "</b></span></span>" +
+      '<span class="ch-title">' + esc(label) + "</span>" + (desc ? '<span class="ch-desc">' + esc(desc) + "</span>" : "") + "</a>";
+  }
   function rise(i) { return ' class="rise" style="--i:' + i + '"'; }
 
   // ---------------- page transitions ----------------
@@ -82,7 +132,8 @@
       '<section class="screen hero"><div class="hero-inner">' +
       '<h1><span class="l rise" style="--i:0">' + esc(p.titleTop) + '</span><span class="l rise" style="--i:1"><span class="danger-text">' + esc(p.titleBottom) + "</span></span></h1>" +
       '<p class="sub rise" style="--i:2">' + esc(p.sub) + "</p>" +
-      "<div" + rise(3) + '><a class="explore" href="#/play"><span>' + esc(p.button) + "</span>" + icon("arrow") + "</a></div>" +
+      (p.homeMission ? '<p class="home-mission rise" style="--i:3">' + esc(p.homeMission) + "</p>" : "") +
+      "<div" + rise(4) + '><a class="explore" href="#/play"><span>' + esc(p.button) + "</span>" + icon("arrow") + "</a></div>" +
       "</div></section>"
     );
   }
@@ -90,29 +141,20 @@
   // ---------------- the three solutions ----------------
   function renderMenu() {
     state = { kind: "menu" }; setChrome("solutions");
-    var tiles = DATA.solutions.map(function (s, i) {
-      return (
-        '<a class="tile ' + s.theme + ' rise" style="--i:' + (i + 1) + '" href="' + stepHref(s, "") + '">' +
-        '<span class="icon">' + icon(s.icon) + "</span>" +
-        "<h3>" + esc(s.title) + "</h3>" + (s.tagline ? '<p class="tile-tag">' + esc(s.tagline) + "</p>" : "") + icon("arrow", "tile-go") +
-        "</a>"
-      );
-    }).join("");
+    var tiles = DATA.solutions.map(function (s, i) { return choice(stepHref(s, ""), s.title, s.tagline, s.icon, i); }).join("");
     var head = '<h2 class="h2 menu-title rise" style="--i:0">' + esc(DATA.problem.menuTitle) + "</h2>" +
       (DATA.problem.mission ? '<p class="mission rise" style="--i:1">' + esc(DATA.problem.mission) + "</p>" : "");
-    tiles += '<a class="tile tile-delete rise" style="--i:4" href="#/win">' +
-      '<span class="icon">' + icon("power") + "</span>" +
-      "<h3>" + esc(DATA.game.deleteLabel) + "</h3>" + icon("arrow", "tile-go") + "</a>";
     render(
       '<section class="screen menu"><div class="container">' + head +
-      '<div class="tiles">' + tiles + "</div>" +
+      '<p class="choose-label rise" style="--i:2">' + esc(DATA.ui.pickCategory) + "</p>" +
+      '<div class="choices">' + tiles + "</div>" +
       "</div></section>",
       bindSpotlight
     );
   }
 
   function bindSpotlight() {
-    app.querySelectorAll(".tile, .path-card").forEach(function (t) {
+    app.querySelectorAll(".tile, .choice").forEach(function (t) {
       t.addEventListener("pointermove", function (e) {
         var r = t.getBoundingClientRect();
         t.style.setProperty("--mx", e.clientX - r.left + "px");
@@ -127,6 +169,7 @@
     if (!sol) return renderMenu();
     var node = nodeAt(sol, path);
     if (!node) return go(stepHref(sol, ""));
+    if (node.win) return go("#/win");
     var depth = path.length;
     state = { kind: "step", sol: sol, path: path, node: node };
     setChrome("step");
@@ -141,10 +184,10 @@
 
     var next;
     if (node.paths) {
-      next = '<div class="paths n' + node.paths.length + '">' + node.paths.map(function (c, i) {
-        return '<a class="path-card" style="--i:' + i + '" href="' + stepHref(sol, path + i) + '">' +
-          '<span class="path-key">' + (i + 1) + '</span><span class="path-text">' + esc(c.label) + "</span>" + icon("arrow", "go") + "</a>";
-      }).join("") + "</div>";
+      next = '<p class="choose-label">' + esc(node.category ? DATA.ui.pickCategory : DATA.ui.pickNext) + "</p>" +
+        '<div class="choices after-in">' + node.paths.map(function (c, i) {
+          return choice(c.win ? "#/win" : stepHref(sol, path + i), c.label, c.fix, c.icon, i, c.win ? "choice-win" : "");
+        }).join("") + "</div>";
     } else {
       var g = DATA.game;
       next = '<div class="outcome"><p class="outcome-kicker">' + esc(g.loseKicker) + "</p>" +
@@ -153,18 +196,19 @@
         '<div class="actions"><a class="btn primary" href="#/">' + icon("redo") + esc(g.again) + "</a></div>";
     }
     var ex = node.example || {};
-    var more = '<details class="example"><summary>' + icon("book") + "More detail" + icon("chev", "chev") + '</summary><div class="ex-body"><p>' + esc(node.wrong) + "</p>" +
+    var more = '<details class="example"><summary>' + icon("book") + esc(DATA.ui.moreDetail) + icon("chev", "chev") + '</summary><div class="ex-body"><p>' + esc(node.wrong) + "</p>" +
       (ex.body ? "<p>" + esc(ex.body) + "</p>" : "") +
-      (ex.source ? '<p class="src">Source: ' + (ex.link ? '<a href="' + esc(ex.link) + '" target="_blank" rel="noopener">' + esc(ex.source) + "</a>" : esc(ex.source)) + "</p>" : "") +
+      (ex.source ? '<p class="src">' + esc(DATA.ui.source) + " " + (ex.link ? '<a href="' + esc(ex.link) + '" target="_blank" rel="noopener">' + esc(ex.source) + "</a>" : esc(ex.source)) + "</p>" : "") +
       "</div></details>";
 
     render(
       '<section class="screen step ' + sol.theme + (node.category ? " is-category" : "") + '"><div class="step-main">' +
-      '<div class="step-top rise" style="--i:0"><a class="back" href="' + backHref + '" aria-label="Back" title="Back">' + icon("back") + "</a>" +
+      '<div class="step-top rise" style="--i:0"><a class="back" href="' + backHref + '" aria-label="' + esc(DATA.ui.back) + '" title="' + esc(DATA.ui.back) + '">' + icon("back") + "</a>" +
       '<nav class="crumbs" aria-label="Your choices">' + crumbs + "</nav></div>" +
       '<h2 class="fix rise" style="--i:1">' + esc(node.fix) + "</h2>" +
+      (node.intro ? '<p class="cat-intro rise" style="--i:2">' + esc(node.intro) + "</p>" : "") +
       '<div id="after" class="after-wrong">' +
-      (node.category ? "" : '<div class="problem" role="status"><p class="problem-line"><b>Problem:</b> ' + esc(node.short) + "</p>" + (node.demo ? '<div class="demo" id="demo"></div>' : "") + "</div>") +
+      (node.category ? "" : '<div class="problem" role="status"><p class="problem-line"><b>' + esc(DATA.ui.problem) + "</b> " + esc(node.short) + "</p>" + (node.demo ? '<div class="demo" id="demo"></div>' : "") + "</div>") +
       next + (node.category ? "" : more) + "</div>" +
       "</div></section>",
       function () {
@@ -173,7 +217,7 @@
         if (node.category) { after.classList.add("show", "category"); return; }
         timer = setTimeout(function () {
           after.classList.add("show");
-          if (window.Demo && node.demo) window.Demo.render(document.getElementById("demo"), node.demo);
+          if (window.Demo && node.demo) window.Demo.render(document.getElementById("demo"), node.demo, DATA.ui.demo);
         }, reduce ? 0 : 450);
       }
     );
@@ -204,6 +248,22 @@
     else renderHome();
   }
 
+  // ---------------- page chrome and the language switch ----------------
+  var langBtn = document.getElementById("lang-toggle");
+  function applyChrome() {
+    var u = DATA.ui;
+    document.documentElement.lang = LANG;
+    document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = u[el.getAttribute("data-t")]; });
+    document.getElementById("present-toggle").title = u.presentTitle;
+    langBtn.textContent = u.langButton; langBtn.title = u.langTitle; langBtn.setAttribute("aria-label", u.langTitle);
+  }
+  langBtn.addEventListener("click", function () {
+    LANG = LANG === "da" ? "en" : "da";
+    try { localStorage.setItem("ai-safety-lang", LANG); } catch (e) { /* no storage */ }
+    DATA = build(); applyChrome(); route();
+  });
+  applyChrome();
+
   // ---------------- presenter mode ----------------
   var toggle = document.getElementById("present-toggle");
   function setPresent(on) {
@@ -225,9 +285,9 @@
     if (!state) return;
     var fwd = k === "ArrowRight" || k === "PageDown" || (k === " " && tag !== "BUTTON" && tag !== "A" && tag !== "SUMMARY");
     if (state.kind === "home" && (fwd || k === "Enter") && tag !== "A") { e.preventDefault(); return go("#/solutions"); }
-    if (state.kind === "menu" && /^[1-9]$/.test(k)) { if (DATA.solutions[+k - 1]) return go(stepHref(DATA.solutions[+k - 1], "")); if (+k === DATA.solutions.length + 1) return go("#/win"); }
+    if (state.kind === "menu" && /^[1-9]$/.test(k)) { if (DATA.solutions[+k - 1]) return go(stepHref(DATA.solutions[+k - 1], "")); }
     if (state.kind !== "step") return;
-    if (/^[1-9]$/.test(k) && state.node.paths && state.node.paths[+k - 1]) go(stepHref(state.sol, state.path + (+k - 1)));
+    if (/^[1-9]$/.test(k) && state.node.paths && state.node.paths[+k - 1]) go(state.node.paths[+k - 1].win ? "#/win" : stepHref(state.sol, state.path + (+k - 1)));
     if (fwd && !state.node.paths) { e.preventDefault(); go("#/solutions"); }
     if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); history.back(); }
   });

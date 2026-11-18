@@ -15,6 +15,8 @@ window.Demo = (function () {
   "use strict";
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var timers = [], frames = [];
+  var T = { really: "What really happened:", online: "online", message: "Message…", human: "Hired worker", ai: "AI assistant",
+    think: "Private reasoning (not shown to the user)", monitor: "Grader AI", mail: "Mail", from: "From", to: "To", blocked: "BLOCKED", allowed: "ALLOWED" };
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
@@ -44,7 +46,7 @@ window.Demo = (function () {
   function chrome(title, cls) {
     return '<div class="win-bar ' + (cls || "") + '"><span class="dots"><i></i><i></i><i></i></span><span class="win-title">' + esc(title) + "</span></div>";
   }
-  function note(d) { return d.note ? '<p class="d-note">' + esc(d.note) + "</p>" : ""; }
+  function note(d) { return d.note ? '<p class="d-note"><span class="d-really">' + esc(T.really) + "</span> " + esc(d.note) + "</p>" : ""; }
   function showNote(el, at) { var n = el.querySelector(".d-note"); if (n) later(function () { n.classList.add("in"); }, at); }
   function clock(i) { var m = 41 + i; return "14:" + (m < 10 ? "0" : "") + m; }
 
@@ -52,7 +54,7 @@ window.Demo = (function () {
 
   // ---------- chat app ----------
   R.chat = function (el, d) {
-    var label = { you: "You", human: "Hired worker", ai: d.ai || "AI assistant", think: "Private reasoning (not shown to the user)", monitor: d.monitor || "Grader AI" };
+    var label = { human: T.human, ai: d.ai || T.ai, think: T.think, monitor: d.monitor || T.monitor };
     var notes = [], lines = [];
     d.lines.forEach(function (l) { if (l[0] === "note") notes.push(l[1]); else lines.push(l); });
     var body = lines.map(function (l, i) {
@@ -61,14 +63,14 @@ window.Demo = (function () {
       var mine = who === "you" || who === "human";
       return '<div class="msg ' + who + (mine ? " mine" : "") + '">' +
         (mine ? "" : '<span class="av">' + (who === "think" ? "…" : who === "monitor" ? "G" : "AI") + "</span>") +
-        '<div class="bubble">' + (who === "think" || who === "monitor" || who === "human" ? '<span class="who">' + label[who] + "</span>" : "") +
+        '<div class="bubble">' + (who === "think" || who === "monitor" || who === "human" ? '<span class="who">' + esc(label[who]) + "</span>" : "") +
         "<p>" + esc(l[1]) + '</p><span class="time">' + clock(i) + "</span></div></div>";
     }).join("");
     el.innerHTML = '<div class="d-app d-chat">' +
-      '<div class="chat-head"><span class="av big">AI</span><div><b>' + esc(d.app || "AI assistant") + '</b><span class="status">online</span></div></div>' +
+      '<div class="chat-head"><span class="av big">AI</span><div><b>' + esc(d.app || T.ai) + '</b><span class="status">' + esc(T.online) + "</span></div></div>" +
       '<div class="chat-body">' + body + '<div class="typing"><i></i><i></i><i></i></div></div>' +
-      '<div class="chat-input"><span>Message…</span><i></i></div></div>' +
-      (notes.length ? '<p class="d-note">' + notes.map(esc).join(" ") + "</p>" : "");
+      '<div class="chat-input"><span>' + esc(T.message) + "</span><i></i></div></div>" +
+      (notes.length ? '<p class="d-note"><span class="d-really">' + esc(T.really) + "</span> " + notes.map(esc).join(" ") + "</p>" : "");
     var msgs = el.querySelectorAll(".msg"), typing = el.querySelector(".typing"), t = 150;
     msgs.forEach(function (m) {
       var bot = !m.classList.contains("mine") && !m.classList.contains("sys");
@@ -85,8 +87,8 @@ window.Demo = (function () {
 
   // ---------- email ----------
   R.email = function (el, d) {
-    el.innerHTML = '<div class="d-app d-email">' + chrome("Mail") +
-      '<div class="mail-head"><p><span>From</span><b>' + esc(d.from) + '</b></p><p><span>To</span>' + esc(d.to) + '</p><p class="subj">' + esc(d.subject) + "</p></div>" +
+    el.innerHTML = '<div class="d-app d-email">' + chrome(T.mail) +
+      '<div class="mail-head"><p><span>' + esc(T.from) + "</span><b>" + esc(d.from) + "</b></p><p><span>" + esc(T.to) + "</span>" + esc(d.to) + '</p><p class="subj">' + esc(d.subject) + "</p></div>" +
       '<div class="mail-body">' + d.body.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</div></div>" + note(d);
     var end = stagger(el, ".mail-body p", 700, 300);
     showNote(el, end + 300);
@@ -104,7 +106,7 @@ window.Demo = (function () {
 
   // ---------- monitoring log ----------
   R.log = function (el, d) {
-    var label = { blocked: "BLOCKED", passed: "ALLOWED", wrong: "BLOCKED" };
+    var label = { blocked: T.blocked, passed: T.allowed, wrong: T.blocked };
     el.innerHTML = '<div class="d-app d-term d-log">' + chrome(d.title || "safety-filter.log", "dark") + "<pre>" + d.items.map(function (it, i) {
       return '<div class="ln ' + it.result + '"><span class="ts">14:0' + (2 + i) + ":1" + i + '</span><span class="lvl">' + label[it.result] + '</span><span class="msg-t">' + esc(it.text) + "</span></div>";
     }).join("") + "</pre></div>" + note(d);
@@ -179,8 +181,9 @@ window.Demo = (function () {
     }, 50);
   };
 
-  function render(el, demo) {
+  function render(el, demo, words) {
     if (!el || !demo || !R[demo.type]) return false;
+    if (words) Object.keys(words).forEach(function (k) { T[k] = words[k]; });
     el.className = "demo demo-" + demo.type;
     R[demo.type](el, demo);
     return true;

@@ -10,7 +10,7 @@
 .win-bar .dots i:nth-child(3) { background: #28c840; }
 .win-title { flex: 1; text-align: center; margin-right: 50px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .d-note { margin: 10px 2px 0; font-size: 0.9em; color: #fca5a5; opacity: 0; transform: translateY(4px); transition: opacity 0.5s, transform 0.5s; }
-.d-note::before { content: "What really happened: "; color: var(--muted); }
+.d-note .d-really { color: var(--muted); }
 .d-note.in { opacity: 1; transform: none; }
 
 /* staggered entry */

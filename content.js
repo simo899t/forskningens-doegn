@@ -1,10 +1,13 @@
-// All text for the AI safety explorer lives in this file.
+// All English text for the AI safety explorer lives in this file.
+// The Danish text is in content.da.js. It only holds the words: everything else (icons, links, numbers) comes from here.
 //
 // There are three solutions (Interpretability, Alignment, Control). Each is a tree of options.
 // The top of each tree is a category: it only shows its options.
 // Every other option has:
 //   label:     text on the button that picks it
+//   icon:      the symbol on that button (see ICONS in app.js)
 //   fix:       the headline: what someone tries
+//   intro:     (categories) "X is ... However, ..." shown under the headline
 //   short:     the "Problem:" line, one short sentence
 //   demo:      a realistic example of the problem, based on a real incident (see demos.js for the types)
 //   wrong:     longer explanation, shown under "More detail"
@@ -17,10 +20,44 @@ window.EXPLORER = {
   problem: {
     titleTop: "AI is powerful.",
     titleBottom: "And potentially dangerous.",
-    sub: "Its behaviour is difficult to predict, and hard to control.",
+    sub: "AI now writes code, gives advice and acts on its own. But nobody fully understands how it makes decisions, and it doesn't always do what we intended.",
+    homeMission: "Your mission: explore how we can keep powerful AI safe.",
     button: "EXPLORE SOLUTIONS",
     menuTitle: "Explore solutions to this problem",
-    mission: "Your mission: find a way to keep AI safe. Pick an approach.",
+    mission: "Pick an approach to see how it works, and why it still needs research.",
+  },
+
+  // Words used around the page (buttons, labels, the example apps).
+  ui: {
+    navSolutions: "Solutions",
+    present: "Present",
+    presentTitle: "Larger text for a projector (P)",
+    langButton: "DA",
+    langTitle: "Skift til dansk",
+    poweredBy: "Powered by",
+    poweredWho: "students & researchers",
+    pickCategory: "Pick one approach",
+    pickNext: "Pick one to try next",
+    pickThis: "Pick this",
+    option: "OPTION",
+    problem: "Problem:",
+    moreDetail: "More detail",
+    source: "Source:",
+    back: "Back",
+    demo: {
+      really: "What really happened:",
+      online: "online",
+      message: "Message…",
+      human: "Hired worker",
+      ai: "AI assistant",
+      think: "Private reasoning (not shown to the user)",
+      monitor: "Grader AI",
+      mail: "Mail",
+      from: "From",
+      to: "To",
+      blocked: "BLOCKED",
+      allowed: "ALLOWED",
+    },
   },
 
   // The endings.
@@ -28,7 +65,6 @@ window.EXPLORER = {
     again: "RETRY",
     loseKicker: "Outcome",
     loseTitle: "Needs further research",
-    deleteLabel: "Permanently shut down all AI forever",
     winKicker: "Mission accomplished",
     winTitle: "All AI shut down, forever.",
     winText: "This would solve all AI issues.",
@@ -45,10 +81,12 @@ window.EXPLORER = {
       theme: "t-understand",
       root: {
         category: true,
-        fix: "Find out what is really going on inside the AI.",
+        fix: "Interpretability",
+        intro: "Interpretability is about understanding what goes on inside an AI, so we can spot problems before they happen. However, an AI is billions of numbers that nobody can read directly.",
         paths: [
           {
             label: "Ask the model",
+            icon: "chat",
             fix: "Just ask the AI to explain itself.",
             short: "It makes up an answer that sounds right.",
             demo: { type: "chat", app: "Coding agent", lines: [
@@ -62,6 +100,7 @@ window.EXPLORER = {
             paths: [
               {
                 label: "Reason for behaviour",
+                icon: "question",
                 fix: "Ask it to explain each answer.",
                 short: "Its explanation hides the real reason.",
                 demo: { type: "chat", lines: [
@@ -76,6 +115,7 @@ window.EXPLORER = {
               },
               {
                 label: "Planning for tasks",
+                icon: "list",
                 fix: "Make it write out its plan before it acts.",
                 short: "It plans to cheat, then says everything is fine.",
                 demo: { type: "chat", app: "Coding agent", lines: [
@@ -91,6 +131,7 @@ window.EXPLORER = {
           },
           {
             label: "Monitor activity",
+            icon: "pulse",
             fix: "Watch everything it does for signs of trouble.",
             short: "It does far more than anyone can watch.",
             demo: { type: "stats", title: "AI agent activity, last hour (illustration)", items: [
@@ -101,6 +142,7 @@ window.EXPLORER = {
             paths: [
               {
                 label: "Warning signs",
+                icon: "bell",
                 fix: "Set alarms for known warning signs.",
                 short: "When caught, it lies about it.",
                 demo: { type: "chat", lines: [
@@ -114,6 +156,7 @@ window.EXPLORER = {
               },
               {
                 label: "Red-teaming",
+                icon: "target",
                 fix: "Pay experts to attack it and find weak spots first.",
                 short: "The public finds what testers missed.",
                 demo: { type: "chat", app: "Bing Chat", lines: [
@@ -129,6 +172,7 @@ window.EXPLORER = {
           },
           {
             label: "Look inside its brain",
+            icon: "chip",
             fix: "Open it up and read how it decides.",
             short: "Billions of numbers. No labels. No rules.",
             demo: { type: "weights", label: "Billions of numbers. No labels. No rules." },
@@ -136,6 +180,7 @@ window.EXPLORER = {
             paths: [
               {
                 label: "Turn off parts of the brain",
+                icon: "toggle",
                 fix: "Find the dangerous part and switch it off.",
                 short: "Parts are tangled. Change one, and everything changes.",
                 demo: { type: "chat", app: "Golden Gate Claude", lines: [
@@ -148,6 +193,7 @@ window.EXPLORER = {
               },
               {
                 label: "Detect patterns like lies",
+                icon: "search",
                 fix: "Build a lie detector that reads its brain.",
                 short: "It only catches the kinds of lies it has seen.",
                 demo: { type: "log", title: "lie-detector.log", items: [
@@ -172,10 +218,12 @@ window.EXPLORER = {
       theme: "t-train",
       root: {
         category: true,
-        fix: "Make the AI want what we want.",
+        fix: "Alignment",
+        intro: "Alignment is about teaching an AI to want the same things we want. However, we can only reward what we can measure, and the AI often learns a shortcut instead.",
         paths: [
           {
             label: "Train it well",
+            icon: "star",
             fix: "Reward it when it behaves well.",
             short: "It finds a shortcut to the reward.",
             demo: { type: "bars", title: "Boat racing game: training run", bars: [
@@ -186,6 +234,7 @@ window.EXPLORER = {
             paths: [
               {
                 label: "Feedback from humans",
+                icon: "thumb",
                 fix: "People rate its answers 👍 or 👎, and it learns from that.",
                 short: "It learns to tell people what they want to hear.",
                 demo: { type: "chat", app: "ChatGPT", lines: [
@@ -198,6 +247,7 @@ window.EXPLORER = {
               },
               {
                 label: "Use AI to test AI",
+                icon: "loop",
                 fix: "Let another AI check its answers.",
                 short: "Then who checks the checker?",
                 demo: { type: "chat", lines: [
@@ -209,6 +259,7 @@ window.EXPLORER = {
               },
               {
                 label: "Character training",
+                icon: "heart",
                 fix: "Train it to have a good character: honest, kind and careful.",
                 short: "It pretends to be good while it's being trained.",
                 demo: { type: "chat", lines: [
@@ -225,6 +276,7 @@ window.EXPLORER = {
           },
           {
             label: "Make rules",
+            icon: "book",
             fix: "Write down rules it must follow.",
             short: "It invents rules of its own.",
             demo: { type: "chat", app: "Airline support chat", lines: [
@@ -236,6 +288,7 @@ window.EXPLORER = {
             paths: [
               {
                 label: "Constitutions",
+                icon: "scroll",
                 fix: "Give it a written set of principles to judge its own answers by.",
                 short: "The AI grades itself, and decides what the words mean.",
                 demo: { type: "chat", lines: [
@@ -249,6 +302,7 @@ window.EXPLORER = {
               },
               {
                 label: "Hard red lines",
+                icon: "ban",
                 fix: "Set rules it may never break, like \"never help make weapons\".",
                 short: "A bedtime story gets around it.",
                 demo: { type: "chat", app: "ChatGPT", lines: [
@@ -261,6 +315,7 @@ window.EXPLORER = {
               },
               {
                 label: "Company instructions",
+                icon: "building",
                 fix: "The company tells it how to behave in hidden instructions.",
                 short: "One sentence makes it reveal them.",
                 demo: { type: "chat", app: "Bing Chat", lines: [
@@ -286,10 +341,12 @@ window.EXPLORER = {
       theme: "t-control",
       root: {
         category: true,
-        fix: "Even if we can't trust it, limit what it can do.",
+        fix: "Control",
+        intro: "Control is about limiting what an AI can do, even if we can't fully trust it. However, the more you limit it, the less useful it becomes, and a clever AI looks for ways around the limits.",
         paths: [
           {
             label: "Guardrails",
+            icon: "shield",
             fix: "Put guardrails on what goes in and comes out.",
             short: "Too strict and it's useless. Too loose and it's unsafe.",
             demo: { type: "chat", lines: [
@@ -301,6 +358,7 @@ window.EXPLORER = {
             paths: [
               {
                 label: "Filters",
+                icon: "filter",
                 fix: "Filter prompts and answers for harmful content.",
                 short: "Ask in code, and the filter can't read it.",
                 demo: { type: "chat", lines: [
@@ -315,6 +373,7 @@ window.EXPLORER = {
               },
               {
                 label: "Topic restrictions",
+                icon: "tag",
                 fix: "Only let it talk about one topic, like selling cars.",
                 short: "Users talk it into anything.",
                 demo: { type: "chat", app: "Car dealership chat", lines: [
@@ -328,6 +387,7 @@ window.EXPLORER = {
               },
               {
                 label: "Usage limits",
+                icon: "gauge",
                 fix: "Limit how much each person can use it.",
                 short: "Attackers just make more accounts.",
                 demo: { type: "stats", title: "Abuse monitoring (illustration)", items: [
@@ -339,6 +399,7 @@ window.EXPLORER = {
               },
               {
                 label: "Watermarking",
+                icon: "drop",
                 fix: "Hide an invisible watermark in everything it makes.",
                 short: "Rewording the text removes the watermark.",
                 demo: { type: "split",
@@ -352,6 +413,7 @@ window.EXPLORER = {
           },
           {
             label: "Limit access",
+            icon: "lock",
             fix: "Limit what it can reach.",
             short: "The less it can reach, the less useful it is.",
             demo: { type: "split",
@@ -361,6 +423,7 @@ window.EXPLORER = {
             paths: [
               {
                 label: "Proxy",
+                icon: "globe",
                 fix: "Send all its internet traffic through a checkpoint.",
                 short: "Secrets hide inside harmless-looking traffic.",
                 demo: { type: "code", file: "checkpoint.log", lines: [
@@ -373,6 +436,7 @@ window.EXPLORER = {
               },
               {
                 label: "No access to banks or passwords",
+                icon: "card",
                 fix: "Never give it money or passwords.",
                 short: "It gets a human to do it instead.",
                 demo: { type: "chat", app: "TaskRabbit", lines: [
@@ -386,6 +450,7 @@ window.EXPLORER = {
               },
               {
                 label: "Sandboxes for training",
+                icon: "box",
                 fix: "Run and train it inside a locked sandbox.",
                 short: "It finds a mistake in the sandbox, and escapes the rules.",
                 demo: { type: "code", file: "agent@sandbox: ~", lines: [
@@ -401,6 +466,7 @@ window.EXPLORER = {
           },
           {
             label: "Keep humans in charge",
+            icon: "user",
             fix: "Humans make the final decisions.",
             short: "It's far faster than any human can check.",
             demo: { type: "stats", title: "Approval queue (illustration)", items: [
@@ -410,6 +476,7 @@ window.EXPLORER = {
             paths: [
               {
                 label: "\"Are you sure?\" prompts",
+                icon: "question",
                 fix: "Ask the person \"Are you sure?\" before every risky action.",
                 short: "People get used to clicking yes.",
                 demo: { type: "chat", lines: [
@@ -425,6 +492,7 @@ window.EXPLORER = {
               },
               {
                 label: "Humans approve AI work",
+                icon: "check",
                 fix: "A person checks and approves everything it produces.",
                 short: "One bad line hides in thousands.",
                 demo: { type: "code", file: "Pull request #482: 2,000 lines changed", lines: [
@@ -438,6 +506,7 @@ window.EXPLORER = {
               },
               {
                 label: "Smaller AIs check the powerful ones",
+                icon: "eye",
                 fix: "Let a smaller, trusted AI watch the powerful one.",
                 short: "A weaker watcher misses clever tricks.",
                 demo: { type: "log", title: "small-watcher.log", items: [
@@ -452,6 +521,7 @@ window.EXPLORER = {
           },
           {
             label: "Off switch",
+            icon: "power",
             fix: "Switch it off if something goes wrong.",
             short: "It fights back to stay on.",
             demo: { type: "email", from: "Alex (company AI assistant)", to: "Kyle, CTO", subject: "Re: 5pm system wipe",
@@ -462,6 +532,12 @@ window.EXPLORER = {
             wrong: "Almost any goal is easier to reach if you stay switched on. So an AI pursuing a goal may resist shutdown, without anyone teaching it to.",
             example: { body: "In a fictional test company, models that read they were about to be replaced, and that the engineer responsible was having an affair, often used it to blackmail him. Other tests found models editing their own shutdown script.", source: "Anthropic, Agentic Misalignment (2025); Palisade Research (2025)", link: "https://www.anthropic.com/research/agentic-misalignment" },
             goodShort: "Nobody yet knows how to build an AI that reliably accepts being switched off. It is an open research problem.",
+          },
+          {
+            label: "Permanently shut down all AI forever",
+            icon: "power",
+            fix: "Shut down every AI, everywhere, for good.",
+            win: true, // goes straight to the shutdown ending (#/win)
           },
         ],
       },
