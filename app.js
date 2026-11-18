@@ -228,8 +228,7 @@
       '<h1 class="end-title rise" style="--i:1"><span class="grad-text">' + esc(g.winTitle) + "</span></h1>" +
       '<p class="sub rise" style="--i:2">' + esc(g.winText) + "</p>" +
       '<p class="sub end-why rise" style="--i:3">' + esc(g.winWhy) + "</p>" +
-      '<div class="end-actions rise" style="--i:4"><a class="explore" href="#/"><span>' + esc(g.again) + "</span>" + icon("redo") + "</a>" +
-      '<a class="btn ghost" href="#/solutions">' + esc(g.explore) + "</a></div>" +
+      '<div class="end-actions rise" style="--i:4"><a class="explore" href="#/"><span>' + esc(g.again) + "</span>" + icon("redo") + "</a></div>" +
       "</div></section>"
     );
   }
@@ -246,8 +245,7 @@
       '<h1 class="end-title rise" style="--i:1"><span class="danger-text">' + esc(g.endTitle) + "</span></h1>" +
       '<p class="sub rise" style="--i:2">' + esc((n === 0 ? g.endTriedZero : n === 1 ? g.endTriedOne : g.endTried).replace("{n}", n)) + "</p>" +
       '<p class="sub end-why rise" style="--i:3">' + esc(g.endWhy) + "</p>" +
-      '<div class="end-actions rise" style="--i:4"><a class="explore" href="#/"><span>' + esc(g.again) + "</span>" + icon("redo") + "</a>" +
-      '<a class="btn ghost" href="#/solutions">' + esc(g.explore) + "</a></div>" +
+      '<div class="end-actions rise" style="--i:4"><a class="explore" href="#/"><span>' + esc(g.again) + "</span>" + icon("redo") + "</a></div>" +
       "</div></section>",
       function () { setTimeout(function () { document.body.classList.remove("alert"); }, 1600); }
     );
