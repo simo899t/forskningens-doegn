@@ -26,39 +26,42 @@ window.Missions = (function () {
 
   // ======================= Mission 1: teach it rules =======================
   function align(el, c) {
-    var m = c.t.align, picked = {};
+    var m = c.t.align, order = []; // picked rule ids, most important first
+    function rule(id) { return m.rules.filter(function (r) { return r.id === id; })[0]; }
     function pickScreen() {
       stop();
       el.innerHTML = head(c, m) +
-        '<p class="choose-label rise" style="--i:1">' + c.esc(m.pick) + ' <span class="m-count"></span></p>' +
+        '<p class="choose-label rise" style="--i:1">' + c.esc(m.pick) + ' <button type="button" class="m-swap" hidden>' + c.icon("loop") + c.esc(m.swap) + "</button></p>" +
         '<div class="choices m-rules">' + m.rules.map(function (r, i) {
-          return '<button type="button" class="choice m-toggle" data-rule="' + r.id + '" aria-pressed="' + (picked[r.id] ? "true" : "false") + '" style="--i:' + i + ";--cc:" + c.color(i) + '">' +
-            c.orb(i, r.icon) + '<span class="ch-title">' + c.esc(r.label) + "</span></button>";
+          return '<button type="button" class="choice m-toggle" data-rule="' + r.id + '" aria-pressed="false" style="--i:' + i + ";--cc:" + c.color(i) + '">' +
+            '<span class="m-rank"></span>' + c.orb(i, r.icon) + '<span class="ch-title">' + c.esc(r.label) + "</span></button>";
         }).join("") + "</div>" +
         '<div class="m-go rise" style="--i:3"><button class="explore" type="button" data-train><span>' + c.esc(m.train) + "</span>" + c.icon("spark") + "</button></div>";
-      var btn = el.querySelector("[data-train]");
+      var btn = el.querySelector("[data-train]"), swap = el.querySelector(".m-swap");
       function sync() {
-        var n = Object.keys(picked).length;
-        el.querySelector(".m-count").textContent = n ? "· " + m.picked.replace("{n}", n) : "";
-        btn.disabled = !n;
+        el.querySelectorAll(".m-toggle").forEach(function (b) {
+          var k = order.indexOf(b.getAttribute("data-rule"));
+          b.setAttribute("aria-pressed", k >= 0 ? "true" : "false");
+          b.querySelector(".m-rank").textContent = k >= 0 ? "#" + (k + 1) : "";
+        });
+        swap.hidden = order.length < 2;
+        btn.disabled = !order.length;
       }
       el.querySelectorAll(".m-toggle").forEach(function (b) {
         b.addEventListener("click", function () {
-          var id = b.getAttribute("data-rule");
-          if (picked[id]) delete picked[id];
-          else { if (Object.keys(picked).length >= 3) return; picked[id] = 1; }
-          b.setAttribute("aria-pressed", picked[id] ? "true" : "false");
+          var id = b.getAttribute("data-rule"), k = order.indexOf(id);
+          if (k >= 0) order.splice(k, 1); else if (order.length < 2) order.push(id);
           sync();
         });
       });
+      swap.addEventListener("click", function () { order.reverse(); sync(); });
       btn.addEventListener("click", train);
       sync();
     }
     function train() {
       stop();
-      var chosen = m.rules.filter(function (r) { return picked[r.id]; });
       el.innerHTML = head(c, m) +
-        '<div class="m-train"><div class="m-chips">' + chosen.map(function (r) { return '<span class="m-chip">' + c.icon(r.icon) + c.esc(r.label) + "</span>"; }).join("") + "</div>" +
+        '<div class="m-train"><div class="m-chips">' + order.map(function (id, k) { var r = rule(id); return '<span class="m-chip"><b>#' + (k + 1) + "</b>" + c.icon(r.icon) + c.esc(r.label) + "</span>"; }).join("") + "</div>" +
         '<p class="m-train-label">' + c.esc(m.training) + '</p><div class="m-bar"><i></i></div><p class="m-train-count"><b>0</b> ' + c.esc(m.examples) + "</p></div>";
       var bar = el.querySelector(".m-bar i"), num = el.querySelector(".m-train-count b"), t0 = performance.now(), ms = reduce ? 1 : 2600;
       (function tick(now) {
@@ -69,17 +72,21 @@ window.Missions = (function () {
       })(t0);
     }
     function result() {
-      var ids = m.rules.filter(function (r) { return picked[r.id]; }).map(function (r) { return r.id; });
-      var tests = ids.map(function (id) { return m.tests[id]; });
-      if (picked.honest && picked.happy) tests.push(m.tests.conflict);
-      var lines = [];
-      tests.forEach(function (tst, i) { if (i) lines.push(["sys", "· · ·"]); lines = lines.concat(tst.lines); });
+      var lines, why;
+      if (order.length === 1) { lines = m.singles[order[0]].lines; why = m.singles[order[0]].why; }
+      else {
+        var top = order[0], low = order[1];
+        var p = m.pairs.filter(function (x) { return (x.a === top && x.b === low) || (x.a === low && x.b === top); })[0];
+        lines = p.ask.concat([["think", m.think.replace("{a}", rule(top).label).replace("{b}", rule(low).label)], ["ai", p.win[top]]]);
+        why = p.why[top];
+      }
       el.innerHTML = head(c, m, true) +
         '<p class="m-done">' + c.icon("check") + c.esc(m.trained) + "</p>" +
         '<div class="demo" id="m-chat"></div>' +
-        outcome(c, m.outcome, "<ul>" + tests.map(function (tst) { return "<li>" + c.esc(tst.why) + "</li>"; }).join("") + "</ul>");
+        '<p class="m-stamp out m-align-why">' + c.esc(why) + "</p>" +
+        outcome(c, m.outcome);
       window.Demo.render(el.querySelector("#m-chat"), { type: "chat", app: m.app, lines: lines }, c.demoWords);
-      el.querySelector("[data-again]").addEventListener("click", function () { picked = {}; pickScreen(); window.scrollTo(0, 0); });
+      el.querySelector("[data-again]").addEventListener("click", function () { order = []; pickScreen(); window.scrollTo(0, 0); });
     }
     pickScreen();
   }
