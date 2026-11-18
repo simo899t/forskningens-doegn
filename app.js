@@ -93,12 +93,11 @@
   function stepHref(sol, path) { return "#/s/" + sol.id + "/r" + path; }
   function go(h) { location.hash = h; }
   // One look for every choice on the site: a round badge with a number and a symbol, then a title and a short line.
-  var CHOICE_COLORS = ["#ef3b55", "#f5b700", "#2ec4b6", "#5b7cfa", "#c084fc", "#fb7185"];
+  var CHOICE_COLORS = ["#8b7cff", "#38c7e8", "#f472b6", "#f5b14c", "#34d399", "#a78bfa"];
   function choice(href, label, desc, iconName, i, cls) {
     var n = (i + 1 < 10 ? "0" : "") + (i + 1);
-    return '<a class="choice ' + (cls || "") + '" style="--i:' + i + ";--cc:" + (cls === "choice-win" ? "#7f1d1d" : CHOICE_COLORS[i % CHOICE_COLORS.length]) + '" href="' + href + '">' +
-      '<span class="ch-badge" aria-hidden="true"><span class="ch-tail"></span><span class="ch-disc">' + icon(iconName || "check") + "</span>" +
-      '<span class="ch-cap"><small>' + esc(DATA.ui.option) + "</small><b>" + n + "</b></span></span>" +
+    return '<a class="choice ' + (cls || "") + '" style="--i:' + i + ";--cc:" + (cls === "choice-win" ? "#f05252" : CHOICE_COLORS[i % CHOICE_COLORS.length]) + '" href="' + href + '">' +
+      '<span class="ch-orb" aria-hidden="true"><span class="ch-ring"></span><span class="ch-num">' + n + "</span>" + icon(iconName || "check") + "</span>" +
       '<span class="ch-title">' + esc(label) + "</span>" + (desc ? '<span class="ch-desc">' + esc(desc) + "</span>" : "") + "</a>";
   }
   function rise(i) { return ' class="rise" style="--i:' + i + '"'; }
