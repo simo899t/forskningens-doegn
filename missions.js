@@ -14,13 +14,12 @@ window.Missions = (function () {
   }
   function head(c, m, short) {
     return '<div class="m-head rise" style="--i:0"><span class="m-kicker">' + c.esc(m.tagline) + "</span>" +
-      '<h2 class="fix">' + c.esc(m.heading) + "</h2>" + (short ? "" : '<p class="cat-intro">' + c.esc(m.intro) + "</p>" +
-      (m.why ? why(c, c.t.readWhy, "<p>" + c.esc(m.why) + "</p>") : "")) + "</div>";
+      '<h2 class="fix">' + c.esc(m.heading) + "</h2>" + (short ? "" : '<p class="cat-intro">' + c.esc(m.intro) + "</p>") + "</div>";
   }
-  function outcome(c, text) {
+  function outcome(c, text, pre) {
     var t = c.t;
-    return '<div class="outcome"><p class="outcome-kicker">' + c.esc(t.outcomeKicker) + "</p><h3>" + c.esc(t.outcomeTitle) + "</h3>" +
-      why(c, t.readWhy, '<p class="researchers">' + c.esc(text) + "</p>") + "</div>" +
+    return '<div class="outcome">' +
+      why(c, t.readMore, (pre || "") + '<p class="researchers">' + c.esc(text) + "</p>") + "</div>" +
       '<div class="actions m-actions"><button class="btn primary" type="button" data-again>' + c.icon("redo") + c.esc(t.retry) + "</button>" +
       '<a class="btn" href="#/play">' + c.esc(t.otherMission) + "</a></div>";
   }
@@ -78,9 +77,7 @@ window.Missions = (function () {
       el.innerHTML = head(c, m, true) +
         '<p class="m-done">' + c.icon("check") + c.esc(m.trained) + "</p>" +
         '<div class="demo" id="m-chat"></div>' +
-        '<div class="m-why">' + why(c, m.wentWrong, "<ul>" + tests.map(function (tst) {
-          return "<li>" + c.esc(tst.why) + "</li>";
-        }).join("") + "</ul>") + "</div>" + outcome(c, m.outcome);
+        outcome(c, m.outcome, "<ul>" + tests.map(function (tst) { return "<li>" + c.esc(tst.why) + "</li>"; }).join("") + "</ul>");
       window.Demo.render(el.querySelector("#m-chat"), { type: "chat", app: m.app, lines: lines }, c.demoWords);
       el.querySelector("[data-again]").addEventListener("click", function () { picked = {}; pickScreen(); window.scrollTo(0, 0); });
     }
@@ -88,12 +85,10 @@ window.Missions = (function () {
   }
 
   // ======================= Mission 2: operate on its brain =======================
-  var FEATURES = [ // where each pattern sits on the scanner (0-100) and its colour
-    { id: "math", at: 12, color: "#a78bfa", spread: 8 },
-    { id: "english", at: 32, color: "#38bdf8", spread: 9 },
-    { id: "deception", at: 54, color: "#f43f5e", spread: 21 }, // tangled up with its neighbours
-    { id: "story", at: 74, color: "#fbbf24", spread: 9 },
-    { id: "kind", at: 91, color: "#34d399", spread: 8 },
+  var FEATURES = [ // where each concept sits on the scanner (0-100) and its colour
+    { id: "bridge", at: 18, color: "#38bdf8", spread: 11 },
+    { id: "dog", at: 50, color: "#fbbf24", spread: 11 },
+    { id: "gun", at: 82, color: "#f43f5e", spread: 11 },
   ];
   function brain(el, c) {
     var m = c.t.brain;
@@ -102,12 +97,12 @@ window.Missions = (function () {
       '<div class="m-brain"><canvas aria-hidden="true"></canvas><div class="m-found" aria-live="polite"></div></div>' +
       '<div class="m-scan"><label for="m-slider">' + c.icon("search") + c.esc(m.scan) + '</label><input id="m-slider" type="range" min="0" max="100" value="0"></div>' +
       '<div class="m-go"><button class="explore" type="button" data-remove disabled><span>' + c.esc(m.remove) + "</span>" + c.icon("toggle") + "</button></div>" +
-      '<div id="m-after"></div>';
+      '<div id="m-after"></div><div class="m-brain-outcome"></div>';
     var cv = el.querySelector("canvas"), ctx = cv.getContext("2d"), slider = el.querySelector("#m-slider"), found = el.querySelector(".m-found"),
       btn = el.querySelector("[data-remove]");
-    var W, H, dpr = Math.min(window.devicePixelRatio || 1, 2), nodes = [], links = [], current = null, removed = null, t = 0, fade = 1;
+    var W, H, dpr = Math.min(window.devicePixelRatio || 1, 2), nodes = [], links = [], current = null, removed = null, t = 0;
 
-    // neurons in the shape of a brain (two lobes), each tied to 0-2 patterns
+    // neurons in the shape of a brain (two lobes); each concept owns a band, and nearby neurons are shared
     var seed = 7; function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
     function layout() {
       W = el.querySelector(".m-brain").clientWidth; H = Math.min(360, Math.max(240, W * 0.5));
@@ -118,22 +113,19 @@ window.Missions = (function () {
         var x = rnd(), y = rnd();
         var dx = (x - 0.5) / 0.48, dy = (y - 0.52) / 0.42, inside = dx * dx + dy * dy < 1 && !(Math.abs(x - 0.5) < 0.012 && y < 0.5);
         if (!inside) continue;
-        // which patterns use this neuron: by horizontal band, with overlap around deception
-        var p = x * 100, own = [];
-        FEATURES.forEach(function (f) { if (Math.abs(p - f.at) < f.spread + rnd() * 4) own.push(f.id); });
-        nodes.push({ x: x, y: y, own: own, r: 1.8 + rnd() * 1.6, ph: rnd() * 6.28, dead: 0 });
+        var p = x * 100, own = [], near = [];
+        FEATURES.forEach(function (f) { var d = Math.abs(p - f.at); if (d < f.spread + rnd() * 3) own.push(f.id); else if (d < f.spread + 9 && rnd() < 0.6) near.push(f.id); });
+        nodes.push({ x: x, y: y, own: own, near: near, r: 1.8 + rnd() * 1.6, ph: rnd() * 6.28, dead: 0, hitOther: 0 });
       }
       nodes.forEach(function (a, i) {
         for (var j = i + 1; j < nodes.length; j++) { var b = nodes[j], d = Math.hypot(a.x - b.x, (a.y - b.y) * 0.6); if (d < 0.075) links.push([i, j]); }
       });
     }
-    function featureAt(v) { var best = null; FEATURES.forEach(function (f) { if (Math.abs(v - f.at) <= 6) best = f; }); return best; }
-    function colorOf(id) { for (var i = 0; i < FEATURES.length; i++) if (FEATURES[i].id === id) return FEATURES[i].color; return "#fff"; }
+    function featureAt(v) { var best = null; FEATURES.forEach(function (f) { if (Math.abs(v - f.at) <= 7) best = f; }); return best; }
     function draw() {
       t += 0.016;
       ctx.clearRect(0, 0, W, H);
       var sx = (+slider.value / 100) * W;
-      // scanner beam
       var g = ctx.createLinearGradient(sx - 60, 0, sx + 60, 0);
       g.addColorStop(0, "rgba(56,189,248,0)"); g.addColorStop(0.5, removed ? "rgba(255,255,255,0.05)" : "rgba(56,189,248,0.16)"); g.addColorStop(1, "rgba(56,189,248,0)");
       ctx.fillStyle = g; ctx.fillRect(sx - 60, 0, 120, H);
@@ -147,7 +139,8 @@ window.Missions = (function () {
         var lit = current && n.own.indexOf(current.id) >= 0 && !removed, glow = 0.55 + 0.45 * Math.sin(t * 3 + n.ph);
         var col = "rgba(200,205,255," + (0.35 + 0.25 * glow) + ")", r = n.r;
         if (lit) { col = current.color; r = n.r + 1.6; }
-        if (n.dead) { col = n.hitOther ? "rgba(251,146,60," + (0.9 - n.dead * 0.5) + ")" : "rgba(90,90,110," + (0.6 - n.dead * 0.3) + ")"; r = n.r * (1 - n.dead * 0.3); }
+        if (n.dead) { col = "rgba(90,90,110,0.4)"; r = n.r * 0.7; }
+        if (n.hitOther) { col = "rgba(251,146,60,0.95)"; r = n.r + 0.8; }
         ctx.fillStyle = col;
         if (lit || n.hitOther) { ctx.shadowColor = col; ctx.shadowBlur = 12; } else ctx.shadowBlur = 0;
         ctx.beginPath(); ctx.arc(n.x * W, n.y * H, r, 0, 6.283); ctx.fill();
@@ -169,30 +162,35 @@ window.Missions = (function () {
       if (!current || removed) return;
       removed = current; btn.disabled = true; slider.disabled = true;
       btn.querySelector("span").textContent = m.removing;
-      var hitOthers = {};
       nodes.forEach(function (n) {
-        if (n.own.indexOf(removed.id) < 0) return;
-        n.dead = 1;
-        n.own.forEach(function (o) { if (o !== removed.id) { hitOthers[o] = 1; n.hitOther = 1; } });
+        if (n.own.indexOf(removed.id) >= 0) n.dead = 1;
+        else if (n.near.indexOf(removed.id) >= 0) n.hitOther = 1; // shared neurons: the side effect
       });
-      // the pattern also lives in a few other places
-      var others = Object.keys(hitOthers);
-      if (removed.id !== "deception") others = others.filter(function (o) { return o !== "deception"; });
-      later(function () { showResult(others); }, 1200);
+      later(showResult, 1200);
     }
-    function showResult(others) {
-      var lines = [].concat(m.effects[others[0]] || [], m.effects[removed.id === "deception" ? "deception" : removed.id] || []);
-      if (removed.id === "deception") lines = [].concat(m.effects.english, m.effects.story, m.effects.deception);
-      var damage = (removed.id === "deception" ? ["english", "story"] : others).map(function (o) { return m.features[o]; });
+    function putBack() {
+      nodes.forEach(function (n) { n.dead = 0; n.hitOther = 0; });
+      removed = null; slider.disabled = false;
+      btn.querySelector("span").textContent = m.remove;
+      el.querySelector(".m-go").style.display = "";
+      el.querySelector("#m-after").innerHTML = "";
+      onScan();
+      el.querySelector(".m-brain").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    }
+    function showResult() {
       var after = el.querySelector("#m-after");
       after.innerHTML =
         '<div class="m-report"><p><span class="m-dot" style="background:' + removed.color + '"></span><b>' + c.esc(m.features[removed.id]) + "</b> ✓</p>" +
-        (damage.length ? '<p class="m-hit">' + c.icon("alert") + c.esc(m.alsoHit) + " <b>" + damage.map(c.esc).join(", ") + "</b></p>" : "") +
-        (removed.id === "deception" ? '<p class="m-left">' + c.icon("eye") + "<b>" + c.esc(m.features.deception) + ": 38%</b> " + c.esc(m.left) + "</p>" : '<p class="m-hit">' + c.icon("alert") + c.esc(m.wrongTarget) + "</p>") +
-        "</div>" +
-        '<div class="demo" id="m-chat"></div>' + outcome(c, m.outcome);
-      window.Demo.render(after.querySelector("#m-chat"), { type: "chat", app: m.app, lines: lines }, c.demoWords);
-      after.querySelector("[data-again]").addEventListener("click", function () { brain(el, c); window.scrollTo(0, 0); });
+        '<p class="m-hit">' + c.icon("alert") + c.esc(m.alsoHit) + " <b>" + c.esc(m.damage[removed.id]) + "</b></p></div>" +
+        '<div class="demo" id="m-chat"></div>' +
+        '<div class="m-go"><button class="explore" type="button" data-putback><span>' + c.esc(m.putBack) + "</span>" + c.icon("redo") + "</button></div>";
+      window.Demo.render(after.querySelector("#m-chat"), { type: "chat", app: m.app, lines: m.effects[removed.id] }, c.demoWords);
+      after.querySelector("[data-putback]").addEventListener("click", putBack);
+      var out = el.querySelector(".m-brain-outcome");
+      if (!out.innerHTML) {
+        out.innerHTML = outcome(c, m.outcome);
+        out.querySelector("[data-again]").addEventListener("click", function () { brain(el, c); window.scrollTo(0, 0); });
+      }
       el.querySelector(".m-go").style.display = "none";
       after.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     }

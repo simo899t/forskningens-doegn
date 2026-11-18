@@ -131,7 +131,7 @@ details.readwhy[open] summary i { transform: rotate(45deg); }
 .m-found { background: var(--paper); color: var(--muted); border: 2px solid var(--ink); }
 .m-found.on { color: var(--ink); border-color: var(--ink); }
 .m-scan label svg { color: var(--ink); }
-.m-scan input { opacity: 1; border: 2px solid var(--ink); height: 14px; background: linear-gradient(90deg, #a78bfa 0 20%, #38bdf8 20% 40%, #f43f5e 40% 60%, #fbbf24 60% 80%, #34d399 80%); }
+.m-scan input { opacity: 1; border: 2px solid var(--ink); height: 14px; background: #d9d1c1; }
 .m-scan input::-webkit-slider-thumb { background: var(--paper); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
 .m-scan input::-moz-range-thumb { background: var(--paper); border: 3px solid var(--ink); }
 .m-hit { color: #a8460b; }
@@ -412,3 +412,5 @@ details.readwhy[open] summary i { transform: rotate(45deg); }
 .m-count.on b { background: var(--danger); color: #fff; }
 .m-count.bump b { animation: pop 0.35s cubic-bezier(0.22, 1.6, 0.36, 1); }
 @keyframes pop { from { transform: scale(0.4); } }
+.outcome { border-top: 0; padding-top: 0; margin-top: 34px; }
+.outcome .readwhy-body ul { margin: 0 0 12px; padding-left: 20px; }
