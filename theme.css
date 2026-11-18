@@ -414,3 +414,15 @@ details.readwhy[open] summary i { transform: rotate(45deg); }
 @keyframes pop { from { transform: scale(0.4); } }
 .outcome { border-top: 0; padding-top: 0; margin-top: 34px; }
 .outcome .readwhy-body ul { margin: 0 0 12px; padding-left: 20px; }
+
+/* alignment: ranked rules */
+.m-rules .m-toggle { position: relative; }
+.m-rank { position: absolute; top: -6px; right: calc(50% - 64px); z-index: 2; min-width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--ink); color: var(--paper); font-family: var(--display); font-weight: 800; font-size: 1.05em; border: 3px solid var(--paper); }
+.m-rank:empty { display: none; }
+.m-swap { margin-left: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 999px; border: 2px solid var(--ink); background: var(--paper);
+  font: 600 0.95em var(--mono); text-transform: none; letter-spacing: 0; cursor: pointer; box-shadow: 2px 2px 0 var(--ink); vertical-align: 1px; }
+.m-swap svg { width: 15px; height: 15px; }
+.m-swap[hidden] { display: none; }
+.m-chip b { margin-right: 6px; font-family: var(--display); }
+.m-align-why { margin-top: 26px; font-size: 1.25rem; }
