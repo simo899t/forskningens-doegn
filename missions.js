@@ -31,30 +31,67 @@ window.Missions = (function () {
     function pickScreen() {
       stop();
       el.innerHTML = head(c, m) +
-        '<p class="choose-label rise" style="--i:1">' + c.esc(m.pick) + ' <button type="button" class="m-swap" hidden>' + c.icon("loop") + c.esc(m.swap) + "</button></p>" +
-        '<div class="choices m-rules">' + m.rules.map(function (r, i) {
-          return '<button type="button" class="choice m-toggle" data-rule="' + r.id + '" aria-pressed="false" style="--i:' + i + ";--cc:" + c.color(i) + '">' +
-            '<span class="m-rank"></span>' + c.orb(i, r.icon) + '<span class="ch-title">' + c.esc(r.label) + "</span></button>";
-        }).join("") + "</div>" +
+        '<div class="m-rulebox rise" style="--i:1"><div><p class="choose-label">' + c.esc(m.pick) + '</p><div class="m-rules">' + m.rules.map(function (r, i) {
+          return '<button type="button" class="choice m-toggle" data-rule="' + r.id + '" style="--i:' + i + ";--cc:" + c.color(i) + '">' +
+            c.orb(i, r.icon) + '<span class="ch-title">' + c.esc(r.label) + "</span></button>";
+        }).join("") + '</div></div><div class="m-list"><p class="choose-label">' + c.esc(m.list) + "</p>" +
+        [m.slot1, m.slot2].map(function (lab, k) { return '<div class="m-slot" data-slot="' + k + '"><span class="m-slot-n">#' + (k + 1) + '</span><div class="m-slot-body"><small>' + c.esc(lab) + '</small><div class="m-slot-in"></div></div></div>'; }).join("") +
+        "</div></div>" +
         '<div class="m-go rise" style="--i:3"><button class="explore" type="button" data-train><span>' + c.esc(m.train) + "</span>" + c.icon("spark") + "</button></div>";
-      var btn = el.querySelector("[data-train]"), swap = el.querySelector(".m-swap");
+      var btn = el.querySelector("[data-train]");
+      function colorOf(id) { return c.color(m.rules.map(function (r) { return r.id; }).indexOf(id)); }
       function sync() {
-        el.querySelectorAll(".m-toggle").forEach(function (b) {
-          var k = order.indexOf(b.getAttribute("data-rule"));
-          b.setAttribute("aria-pressed", k >= 0 ? "true" : "false");
-          b.querySelector(".m-rank").textContent = k >= 0 ? "#" + (k + 1) : "";
+        el.querySelectorAll(".m-toggle").forEach(function (b) { b.classList.toggle("used", order.indexOf(b.getAttribute("data-rule")) >= 0); });
+        el.querySelectorAll(".m-slot").forEach(function (sl, k) {
+          var id = order[k], r = id && rule(id), box = sl.querySelector(".m-slot-in");
+          sl.classList.toggle("full", !!id);
+          box.innerHTML = id ? '<span class="m-slot-item" data-rule="' + id + '" style="--cc:' + colorOf(id) + '"><span class="m-slot-ic">' + c.icon(r.icon) + "</span>" + c.esc(r.label) + "</span>"
+            : '<span class="m-slot-empty">' + c.esc(m.drop) + "</span>";
+          var it = box.querySelector(".m-slot-item"); if (it) drag(it, true);
         });
-        swap.hidden = order.length < 2;
         btn.disabled = !order.length;
       }
-      el.querySelectorAll(".m-toggle").forEach(function (b) {
-        b.addEventListener("click", function () {
-          var id = b.getAttribute("data-rule"), k = order.indexOf(id);
-          if (k >= 0) order.splice(k, 1); else if (order.length < 2) order.push(id);
-          sync();
+      function slotAt(x, y) { var hit = null; el.querySelectorAll(".m-slot").forEach(function (sl) { var r = sl.getBoundingClientRect(); if (x > r.left && x < r.right && y > r.top && y < r.bottom) hit = +sl.getAttribute("data-slot"); }); return hit; }
+      function place(id, k) { // put rule id into slot k (swapping if it came from the other slot)
+        var from = order.indexOf(id);
+        if (k === null) { if (from >= 0) order.splice(from, 1); return; }
+        if (from === k) return;
+        if (from >= 0) { order[from] = order[k]; order[k] = id; order = order.filter(Boolean); return; }
+        if (k >= order.length) order.push(id); else order[k] = id;
+      }
+      function tap(id, fromList) {
+        var k = order.indexOf(id);
+        if (fromList || k >= 0) order.splice(k, 1); else if (order.length < 2) order.push(id); else order[1] = id;
+        sync();
+      }
+      function drag(b, fromList) {
+        var id = b.getAttribute("data-rule"), ghost = null, sx = 0, sy = 0, moved = false;
+        b.addEventListener("pointerdown", function (e) { sx = e.clientX; sy = e.clientY; moved = false; b.setPointerCapture(e.pointerId); e.preventDefault(); });
+        b.addEventListener("pointermove", function (e) {
+          if (!b.hasPointerCapture(e.pointerId)) return;
+          if (!moved && Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy) > 6) {
+            moved = true;
+            ghost = document.createElement("span"); ghost.className = "m-slot-item m-drag-ghost"; ghost.style.setProperty("--cc", colorOf(id));
+            ghost.innerHTML = '<span class="m-slot-ic">' + c.icon(rule(id).icon) + "</span>" + c.esc(rule(id).label);
+            document.body.appendChild(ghost); el.querySelector(".m-list").classList.add("dragging");
+          }
+          if (ghost) {
+            ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px";
+            var k = slotAt(e.clientX, e.clientY);
+            el.querySelectorAll(".m-slot").forEach(function (sl, i) { sl.classList.toggle("over", i === k); });
+          }
         });
-      });
-      swap.addEventListener("click", function () { order.reverse(); sync(); });
+        function end(e) {
+          if (ghost) {
+            ghost.remove(); ghost = null; el.querySelector(".m-list").classList.remove("dragging");
+            el.querySelectorAll(".m-slot").forEach(function (sl) { sl.classList.remove("over"); });
+            if (e.type === "pointerup") { var k = slotAt(e.clientX, e.clientY); if (k !== null || fromList) { if (k !== null && k > order.length) k = order.length; place(id, k); sync(); } }
+          } else if (e.type === "pointerup" && !moved) tap(id, fromList);
+        }
+        b.addEventListener("pointerup", end); b.addEventListener("pointercancel", end);
+        b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tap(id, fromList); } });
+      }
+      el.querySelectorAll(".m-toggle").forEach(function (b) { drag(b, false); });
       btn.addEventListener("click", train);
       sync();
     }

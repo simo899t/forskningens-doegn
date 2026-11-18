@@ -21,15 +21,15 @@ window.EXPLORER = {
     titleTop: "AI is powerful.",
     titleBottom: "And potentially dangerous.",
     sub: "AI now writes code, gives advice and acts on its own. But nobody fully understands how it makes decisions, and it doesn't always do what we intended.",
-    homeMission: "Your mission: try real AI safety techniques, and see if you can keep AI safe.",
-    button: "START A MISSION",
+    homeMission: "Try real AI safety techniques, and see if you can keep AI safe.",
+    button: "LET'S GO",
     menuTitle: "Explore solutions to this problem",
     mission: "Pick an approach to see how it works, and why it still needs research.",
   },
 
   // Words used around the page (buttons, labels, the example apps).
   ui: {
-    navSolutions: "Missions",
+    navSolutions: "Games",
     present: "Present",
     presentTitle: "Larger text for a projector (P)",
     langButton: "DA",
@@ -65,7 +65,7 @@ window.EXPLORER = {
     again: "RETRY",
     loseKicker: "Outcome",
     loseTitle: "Needs further research",
-    winKicker: "Mission accomplished",
+    winKicker: "Well done",
     winTitle: "All AI shut down, forever.",
     winText: "This would solve all AI issues.",
     winWhy: "However, it's highly unlikely to happen, because AI brings huge benefits to industry.",
