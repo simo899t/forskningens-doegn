@@ -98,16 +98,13 @@
         "</a>"
       );
     }).join("");
-    var g = DATA.game;
-    var head = game.active
-      ? '<div class="scenario"><span class="alert-pill rise" style="--i:0"><span class="pulse-dot"></span>' + esc(g.alert) + "</span>" +
-        '<h2 class="h2 rise" style="--i:0">' + esc(g.prompt) + '</h2><p class="scenario-q rise" style="--i:1">' + esc(g.question) + "</p></div>"
-      : '<h2 class="h2 menu-title rise" style="--i:0">' + esc(DATA.problem.menuTitle) + "</h2>";
+    var head = '<h2 class="h2 menu-title rise" style="--i:0">' + esc(DATA.problem.menuTitle) + "</h2>" +
+      (DATA.problem.mission ? '<p class="mission rise" style="--i:1">' + esc(DATA.problem.mission) + "</p>" : "");
     tiles += '<a class="tile tile-delete rise" style="--i:4" href="#/win">' +
       '<span class="icon">' + icon("power") + "</span>" +
       "<h3>" + esc(DATA.game.deleteLabel) + "</h3>" + icon("arrow", "tile-go") + "</a>";
     render(
-      '<section class="screen menu' + (game.active ? " in-game" : "") + '"><div class="container">' + head +
+      '<section class="screen menu"><div class="container">' + head +
       '<div class="tiles">' + tiles + "</div>" +
       "</div></section>",
       bindSpotlight
@@ -134,7 +131,6 @@
     state = { kind: "step", sol: sol, path: path, node: node };
     setChrome("step");
     markVisited(sol.id + ":" + path);
-    if (game.active) game.tried[sol.id + ":" + path] = 1;
 
     // Where you came from: the solution, then each option picked so far (the current one is the headline)
     var crumbs = '<span class="c">' + (depth ? '<a href="' + stepHref(sol, "") + '">' : "<span>") + '<span class="ci">' + icon(sol.icon) + "</span>" + esc(sol.title) + (depth ? "</a>" : "</span>") + "</span>";
@@ -151,12 +147,10 @@
       }).join("") + "</div>";
     } else {
       var g = DATA.game;
-      if (game.active) { game.lost = true; stopGame(); }
-      next = '<article class="card outcome-card lose"><div class="label">' + icon("alert") + esc(g.loseKicker) + "</div>" +
+      next = '<div class="outcome"><p class="outcome-kicker">' + esc(g.loseKicker) + "</p>" +
         "<h3>" + esc(g.loseTitle) + "</h3>" +
-        '<p class="researchers"><b>' + esc(g.researchersLabel) + "</b> " + esc(node.goodShort || node.researchers) + "</p></article>" +
-        '<div class="actions"><a class="btn primary" href="#/">' + icon("redo") + esc(g.again) + "</a>" +
-        (game.lost ? "" : '<a class="btn" href="' + stepHref(sol, path.slice(0, -1)) + '">Try another option' + icon("arrow", "arrow") + "</a>") + "</div>";
+        '<p class="researchers">' + esc(node.goodShort) + "</p></div>" +
+        '<div class="actions"><a class="btn primary" href="#/">' + icon("redo") + esc(g.again) + "</a></div>";
     }
     var ex = node.example || {};
     var more = '<details class="example"><summary>' + icon("book") + "More detail" + icon("chev", "chev") + '</summary><div class="ex-body"><p>' + esc(node.wrong) + "</p>" +
@@ -170,7 +164,7 @@
       '<nav class="crumbs" aria-label="Your choices">' + crumbs + "</nav></div>" +
       '<h2 class="fix rise" style="--i:1">' + esc(node.fix) + "</h2>" +
       '<div id="after" class="after-wrong">' +
-      (node.category ? "" : '<article class="card wrong-card" role="status"><div class="label">' + icon("alert") + "But</div>" + (node.demo ? '<div class="demo" id="demo"></div>' : "") + "<p class=\"text\">" + esc(node.short) + "</p></article>") +
+      (node.category ? "" : '<div class="problem" role="status"><p class="problem-line"><b>Problem:</b> ' + esc(node.short) + "</p>" + (node.demo ? '<div class="demo" id="demo"></div>' : "") + "</div>") +
       next + (node.category ? "" : more) + "</div>" +
       "</div></section>",
       function () {
@@ -180,51 +174,19 @@
         timer = setTimeout(function () {
           after.classList.add("show");
           if (window.Demo && node.demo) window.Demo.render(document.getElementById("demo"), node.demo);
-          document.body.classList.add("alert");
-          if (window.bgPulse) window.bgPulse("danger");
-          if (!node.paths && window.bgPulse) setTimeout(function () { window.bgPulse("danger"); }, 900);
-          timer = setTimeout(function () { document.body.classList.remove("alert"); }, 1400);
         }, reduce ? 0 : 450);
       }
     );
   }
 
-  // ---------------- the 1-minute challenge ----------------
-  var game = { active: false, end: 0, tried: {}, tick: null };
-  var timerEl = document.createElement("div");
-  timerEl.className = "timer"; timerEl.hidden = true;
-  timerEl.setAttribute("role", "timer");
-  timerEl.innerHTML = '<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="trk" cx="18" cy="18" r="15.5"/><circle class="arc" cx="18" cy="18" r="15.5"/></svg><b>1:00</b>';
-  document.body.appendChild(timerEl);
-
-  function startGame() {
-    stopGame();
-    game.active = true; game.tried = {};
-    game.end = Date.now() + DATA.game.seconds * 1000;
-    timerEl.hidden = false;
-    updateTimer();
-    game.tick = setInterval(updateTimer, 200);
-  }
-  function stopGame() {
-    game.active = false; clearInterval(game.tick);
-    timerEl.hidden = true; timerEl.classList.remove("urgent");
-  }
-  function updateTimer() {
-    var left = Math.max(0, game.end - Date.now()), sec = Math.ceil(left / 1000);
-    timerEl.querySelector("b").textContent = Math.floor(sec / 60) + ":" + ("0" + (sec % 60)).slice(-2);
-    timerEl.style.setProperty("--p", left / (DATA.game.seconds * 1000));
-    timerEl.classList.toggle("urgent", sec <= 10);
-    if (left <= 0) { game.over = true; stopGame(); go("#/end"); }
-  }
-
+  // ---------------- the only ending that works ----------------
   function renderWin() {
-    stopGame();
     state = { kind: "end" }; setChrome("end");
     var g = DATA.game;
     if (window.bgPulse) window.bgPulse("good");
     render(
       '<section class="screen hero end win"><div class="hero-inner">' +
-      '<div class="rise" style="--i:0"><span class="alert-pill good"><span class="pulse-dot"></span>' + esc(g.winKicker) + "</span></div>" +
+      '<div class="rise" style="--i:0"><span class="alert-pill good">' + esc(g.winKicker) + "</span></div>" +
       '<h1 class="end-title rise" style="--i:1"><span class="grad-text">' + esc(g.winTitle) + "</span></h1>" +
       '<p class="sub rise" style="--i:2">' + esc(g.winText) + "</p>" +
       '<p class="sub end-why rise" style="--i:3">' + esc(g.winWhy) + "</p>" +
@@ -233,32 +195,13 @@
     );
   }
 
-  function renderEnd() {
-    if (!game.over) return go("#/solutions");
-    state = { kind: "end" }; setChrome("end");
-    var g = DATA.game, n = Object.keys(game.tried).length;
-    document.body.classList.add("alert");
-    if (window.bgPulse) { window.bgPulse("danger"); setTimeout(function () { window.bgPulse("danger"); }, 700); }
-    render(
-      '<section class="screen hero end"><div class="hero-inner">' +
-      '<div class="rise" style="--i:0"><span class="alert-pill"><span class="pulse-dot"></span>' + esc(g.endKicker) + "</span></div>" +
-      '<h1 class="end-title rise" style="--i:1"><span class="danger-text">' + esc(g.endTitle) + "</span></h1>" +
-      '<p class="sub rise" style="--i:2">' + esc((n === 0 ? g.endTriedZero : n === 1 ? g.endTriedOne : g.endTried).replace("{n}", n)) + "</p>" +
-      '<p class="sub end-why rise" style="--i:3">' + esc(g.endWhy) + "</p>" +
-      '<div class="end-actions rise" style="--i:4"><a class="explore" href="#/"><span>' + esc(g.again) + "</span>" + icon("redo") + "</a></div>" +
-      "</div></section>",
-      function () { setTimeout(function () { document.body.classList.remove("alert"); }, 1600); }
-    );
-  }
-
   function route() {
     var h = location.hash.replace(/^#\/?/, "").split("/");
-    if (h[0] === "play") { game.over = false; game.lost = false; if (DATA.game.seconds > 0) startGame(); else stopGame(); renderMenu(); }
-    else if (h[0] === "end") renderEnd();
+    if (h[0] === "play" || h[0] === "end") renderMenu();
     else if (h[0] === "win") renderWin();
     else if (h[0] === "solutions" || h[0] === "why") renderMenu();
     else if (h[0] === "s" && h[1]) renderStep(h[1], (h[2] || "r").replace(/^r/, "").replace(/[^0-9]/g, ""));
-    else { stopGame(); renderHome(); }
+    else renderHome();
   }
 
   // ---------------- presenter mode ----------------
