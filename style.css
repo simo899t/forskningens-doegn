@@ -368,3 +368,21 @@ details.example .src { font-size: 0.88em; color: var(--faint); }
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   .rise { opacity: 1; }
 }
+
+/* Credit badge, bottom-left on every screen. Logo is logo-sdu.png (white on transparent). */
+.credit {
+  position: fixed; left: 18px; bottom: 18px; z-index: 20;
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; border-radius: 14px;
+  background: rgba(15, 17, 28, 0.55); border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: rgba(255,255,255,0.6); font-size: 11px; line-height: 1.25; text-decoration: none;
+  transition: border-color .3s, color .3s, transform .3s var(--ease);
+}
+.credit strong { color: #fff; font-weight: 600; font-size: 12.5px; }
+.credit img { height: 40px; width: auto; display: block; opacity: .92; }
+.credit-sep { width: 1px; align-self: stretch; background: rgba(255,255,255,0.15); }
+.credit:hover { border-color: rgba(139,92,246,0.5); color: rgba(255,255,255,0.8); transform: translateY(-2px); }
+@media (max-width: 720px) {
+  .credit { position: static; margin: 32px auto 24px; width: max-content; }
+}
