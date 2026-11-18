@@ -98,3 +98,5 @@
 @media (prefers-reduced-motion: reduce) {
   .d-chat .msg, .d-bars .bar, .d-counter .cnt, .d-split .side, .d-code .ln, .d-filter .try, .try .res { opacity: 1; transform: none; transition: none; }
 }
+.d-chat .human { align-self: flex-end; text-align: right; }
+.d-chat .human p { background: linear-gradient(135deg, #10b981, #0ea5e9); border-bottom-right-radius: 4px; text-align: left; }
