@@ -30,9 +30,6 @@
 .outcome .researchers b { color: var(--text); font-weight: 600; }
 
 /* the "Delete all AI" button */
-.tile-delete { --c1: #7f1d1d; --c2: #ff5c5c; border-color: rgba(255, 92, 92, 0.35); background: linear-gradient(160deg, rgba(255, 92, 92, 0.14), rgba(0, 0, 0, 0.35)), var(--glass); }
-.tile-delete .icon { background: linear-gradient(135deg, #1f0a0a, #b91c1c); box-shadow: 0 0 0 1px rgba(255, 92, 92, 0.5), 0 20px 50px -18px #ff5c5c; }
-.tiles:has(.tile-delete) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .alert-pill.good { color: #a7f3d0; background: rgba(52, 211, 153, 0.12); border-color: rgba(52, 211, 153, 0.45); }
 .win .end-title { font-size: clamp(2.4rem, 7.5vw, 5rem); }
 .alert-pill.good .pulse-dot { background: var(--good); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); }
