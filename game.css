@@ -1,25 +1,4 @@
-/* ============ The 1-minute "save the world" challenge ============ */
-
-/* countdown, fixed at the top centre while the game runs */
-.timer {
-  --p: 1;
-  position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 60;
-  display: flex; align-items: center; gap: 10px; padding: 6px 18px 6px 6px; border-radius: 999px;
-  background: rgba(10, 11, 20, 0.82); border: 1px solid rgba(255, 92, 92, 0.45);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 10px 40px -12px rgba(255, 92, 92, 0.6);
-  animation: timer-in 0.6s var(--ease) both;
-}
-.timer[hidden] { display: none; }
-.timer svg { width: 38px; height: 38px; transform: rotate(-90deg); }
-.timer circle { fill: none; stroke-width: 3.2; }
-.timer .trk { stroke: rgba(255, 255, 255, 0.1); }
-.timer .arc { stroke: #ff5c5c; stroke-linecap: round; stroke-dasharray: 97.4; stroke-dashoffset: calc(97.4 * (1 - var(--p))); transition: stroke-dashoffset 0.25s linear; filter: drop-shadow(0 0 4px #ff5c5c); }
-.timer b { font-family: var(--display); font-size: 1.5em; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; min-width: 3.2ch; }
-.timer.urgent { animation: urgent 1s ease-in-out infinite; border-color: #ff5c5c; }
-.timer.urgent b { color: #ff7a7a; }
-@keyframes timer-in { from { opacity: 0; transform: translate(-50%, -14px) scale(0.9); } }
-@keyframes urgent { 50% { box-shadow: 0 0 0 6px rgba(255, 92, 92, 0.18), 0 10px 40px -8px rgba(255, 92, 92, 0.9); transform: translateX(-50%) scale(1.06); } }
+/* ============ Scenario header and endings ============ */
 
 /* scenario header on the solutions page */
 .scenario { text-align: center; margin: 0 auto 40px; }
@@ -40,21 +19,15 @@
 .end-actions .explore svg { width: 22px; height: 22px; }
 
 @media (max-width: 620px) {
-  .timer { top: auto; bottom: 16px; padding-right: 14px; }
-  @keyframes urgent { 50% { box-shadow: 0 0 0 6px rgba(255, 92, 92, 0.18); transform: translateX(-50%) scale(1.06); } }
   .scenario { margin-bottom: 26px; }
 }
-@media (prefers-reduced-motion: reduce) { .timer, .timer.urgent { animation: none; } }
 
 /* every ending: the AI escaped */
-.outcome-card { margin-top: 28px; }
-.outcome-card.lose { border-color: rgba(255, 92, 92, 0.6); background: linear-gradient(135deg, rgba(255, 92, 92, 0.22), rgba(120, 20, 40, 0.18)), var(--glass-strong); }
-.outcome-card .label { color: #ff8a8a; }
-.outcome-card h3 { font-family: var(--display); font-size: clamp(1.8rem, 5vw, 2.8rem); margin: 10px 0 12px; letter-spacing: -0.02em; }
-.outcome-card .researchers { margin: 0; color: var(--muted); }
-.outcome-card .researchers b { color: var(--good); font-weight: 600; }
-.after-wrong .outcome-card { animation: none; opacity: 0; }
-.after-wrong.show .outcome-card { animation: slam 0.7s var(--ease) 0.6s both; }
+.outcome { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); }
+.outcome-kicker { margin: 0; font-size: 0.8em; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.outcome h3 { font-family: var(--display); font-size: clamp(1.8rem, 5vw, 2.6rem); margin: 6px 0 10px; letter-spacing: -0.02em; }
+.outcome .researchers { margin: 0; color: var(--text); font-size: 1.08em; max-width: 60ch; }
+.outcome .researchers b { color: var(--text); font-weight: 600; }
 
 /* the "Delete all AI" button */
 .tile-delete { --c1: #7f1d1d; --c2: #ff5c5c; border-color: rgba(255, 92, 92, 0.35); background: linear-gradient(160deg, rgba(255, 92, 92, 0.14), rgba(0, 0, 0, 0.35)), var(--glass); }
