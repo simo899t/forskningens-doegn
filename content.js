@@ -41,9 +41,8 @@ window.EXPLORER = {
     deleteLabel: "Permanently shut down all AI forever",
     winKicker: "AI stopped",
     winTitle: "You shut down all AI, forever.",
-    winText: "The only fix that always works. But it also ends AI that finds new medicines, translates for refugees and predicts storms.",
-    winWhy: "Can we keep the good without the danger? That's what AI safety research is trying to find out.",
-    explore: "Explore without a timer",
+    winText: "This would solve all AI issues.",
+    winWhy: "However, it's highly unlikely to happen, because AI brings huge benefits to industry.",
   },
 
   solutions: [
