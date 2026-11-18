@@ -84,3 +84,6 @@
 .back svg { width: 20px; height: 20px; transition: transform 0.3s var(--ease); }
 .back:hover { gap: 0; border-color: var(--c2); background: linear-gradient(135deg, var(--c1), var(--c2)); box-shadow: 0 10px 30px -10px var(--c1); }
 .back:hover svg { transform: translateX(-3px); }
+.back { flex: none; }
+/* Long option pages: the badge sits at the bottom of the page instead of floating over content */
+body.on-step .credit { position: static; margin: 8px auto 32px; width: max-content; }

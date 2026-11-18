@@ -55,6 +55,7 @@
   // ---------------- page transitions ----------------
   function render(html, after) {
     clearTimeout(timer);
+    if (window.Demo) window.Demo.stop();
     var old = app.firstElementChild;
     var swap = function () {
       app.innerHTML = html;
@@ -66,6 +67,7 @@
   }
   function setChrome(kind) {
     document.body.classList.toggle("on-home", kind === "home");
+    document.body.classList.toggle("on-step", kind === "step");
     document.body.classList.remove("alert");
     document.querySelectorAll("[data-nav]").forEach(function (a) { a.classList.toggle("active", a.getAttribute("data-nav") === kind); });
     if (window.bgCalm) window.bgCalm(kind === "step");
@@ -156,7 +158,7 @@
       '<nav class="crumbs" aria-label="Your choices">' + crumbs + "</nav></div>" +
       '<h2 class="fix rise" style="--i:1">' + esc(node.fix) + "</h2>" +
       '<div id="after" class="after-wrong">' +
-      '<article class="card wrong-card" role="status"><div class="label">' + icon("alert") + "But</div><p class=\"text\">" + esc(node.short) + "</p></article>" +
+      '<article class="card wrong-card" role="status"><div class="label">' + icon("alert") + "But</div>" + (node.demo ? '<div class="demo" id="demo"></div>' : "") + "<p class=\"text\">" + esc(node.short) + "</p></article>" +
       next + more + "</div>" +
       "</div></section>",
       function () {
@@ -164,6 +166,7 @@
         var after = document.getElementById("after");
         timer = setTimeout(function () {
           after.classList.add("show");
+          if (window.Demo && node.demo) window.Demo.render(document.getElementById("demo"), node.demo);
           document.body.classList.add("alert");
           if (window.bgPulse) window.bgPulse("danger");
           if (!node.paths && window.bgPulse) setTimeout(function () { window.bgPulse("good"); }, 900);
