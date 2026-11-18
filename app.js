@@ -94,7 +94,7 @@
       return (
         '<a class="tile ' + s.theme + ' rise" style="--i:' + (i + 1) + '" href="' + stepHref(s, "") + '">' +
         '<span class="icon">' + icon(s.icon) + "</span>" +
-        "<h3>" + esc(s.title) + "</h3>" + icon("arrow", "tile-go") +
+        "<h3>" + esc(s.title) + "</h3>" + (s.tagline ? '<p class="tile-tag">' + esc(s.tagline) + "</p>" : "") + icon("arrow", "tile-go") +
         "</a>"
       );
     }).join("");
@@ -145,18 +145,18 @@
 
     var next;
     if (node.paths) {
-      next = '<div class="paths">' + node.paths.map(function (c, i) {
+      next = '<div class="paths n' + node.paths.length + '">' + node.paths.map(function (c, i) {
         return '<a class="path-card" style="--i:' + i + '" href="' + stepHref(sol, path + i) + '">' +
           '<span class="path-key">' + (i + 1) + '</span><span class="path-text">' + esc(c.label) + "</span>" + icon("arrow", "go") + "</a>";
       }).join("") + "</div>";
     } else {
-      var sib = path.slice(0, -1) + (path.slice(-1) === "0" ? "1" : "0"), g = DATA.game;
+      var g = DATA.game;
       if (game.active) { game.lost = true; stopGame(); }
       next = '<article class="card outcome-card lose"><div class="label">' + icon("alert") + esc(g.loseKicker) + "</div>" +
         "<h3>" + esc(g.loseTitle) + "</h3>" +
         '<p class="researchers"><b>' + esc(g.researchersLabel) + "</b> " + esc(node.goodShort || node.researchers) + "</p></article>" +
         '<div class="actions"><a class="btn primary" href="#/">' + icon("redo") + esc(g.again) + "</a>" +
-        (game.lost ? "" : '<a class="btn" href="' + stepHref(sol, sib) + '">Try the other option' + icon("arrow", "arrow") + "</a>") + "</div>";
+        (game.lost ? "" : '<a class="btn" href="' + stepHref(sol, path.slice(0, -1)) + '">Try another option' + icon("arrow", "arrow") + "</a>") + "</div>";
     }
     var ex = node.example || {};
     var more = '<details class="example"><summary>' + icon("book") + "More detail" + icon("chev", "chev") + '</summary><div class="ex-body"><p>' + esc(node.wrong) + "</p>" +
@@ -165,17 +165,18 @@
       "</div></details>";
 
     render(
-      '<section class="screen step ' + sol.theme + '"><div class="step-main">' +
+      '<section class="screen step ' + sol.theme + (node.category ? " is-category" : "") + '"><div class="step-main">' +
       '<div class="step-top rise" style="--i:0"><a class="back" href="' + backHref + '" aria-label="Back" title="Back">' + icon("back") + "</a>" +
       '<nav class="crumbs" aria-label="Your choices">' + crumbs + "</nav></div>" +
       '<h2 class="fix rise" style="--i:1">' + esc(node.fix) + "</h2>" +
       '<div id="after" class="after-wrong">' +
-      '<article class="card wrong-card" role="status"><div class="label">' + icon("alert") + "But</div>" + (node.demo ? '<div class="demo" id="demo"></div>' : "") + "<p class=\"text\">" + esc(node.short) + "</p></article>" +
-      next + more + "</div>" +
+      (node.category ? "" : '<article class="card wrong-card" role="status"><div class="label">' + icon("alert") + "But</div>" + (node.demo ? '<div class="demo" id="demo"></div>' : "") + "<p class=\"text\">" + esc(node.short) + "</p></article>") +
+      next + (node.category ? "" : more) + "</div>" +
       "</div></section>",
       function () {
         bindSpotlight();
         var after = document.getElementById("after");
+        if (node.category) { after.classList.add("show", "category"); return; }
         timer = setTimeout(function () {
           after.classList.add("show");
           if (window.Demo && node.demo) window.Demo.render(document.getElementById("demo"), node.demo);
@@ -254,11 +255,11 @@
 
   function route() {
     var h = location.hash.replace(/^#\/?/, "").split("/");
-    if (h[0] === "play") { game.over = false; game.lost = false; startGame(); renderMenu(); }
+    if (h[0] === "play") { game.over = false; game.lost = false; if (DATA.game.seconds > 0) startGame(); else stopGame(); renderMenu(); }
     else if (h[0] === "end") renderEnd();
     else if (h[0] === "win") renderWin();
     else if (h[0] === "solutions" || h[0] === "why") renderMenu();
-    else if (h[0] === "s" && h[1]) renderStep(h[1], (h[2] || "r").replace(/^r/, "").replace(/[^01]/g, ""));
+    else if (h[0] === "s" && h[1]) renderStep(h[1], (h[2] || "r").replace(/^r/, "").replace(/[^0-9]/g, ""));
     else { stopGame(); renderHome(); }
   }
 
@@ -283,9 +284,9 @@
     if (!state) return;
     var fwd = k === "ArrowRight" || k === "PageDown" || (k === " " && tag !== "BUTTON" && tag !== "A" && tag !== "SUMMARY");
     if (state.kind === "home" && (fwd || k === "Enter") && tag !== "A") { e.preventDefault(); return go("#/solutions"); }
-    if (state.kind === "menu" && /^[1-3]$/.test(k)) return go(stepHref(DATA.solutions[+k - 1], ""));
+    if (state.kind === "menu" && /^[1-9]$/.test(k)) { if (DATA.solutions[+k - 1]) return go(stepHref(DATA.solutions[+k - 1], "")); if (+k === DATA.solutions.length + 1) return go("#/win"); }
     if (state.kind !== "step") return;
-    if ((k === "1" || k === "2") && state.node.paths) go(stepHref(state.sol, state.path + (+k - 1)));
+    if (/^[1-9]$/.test(k) && state.node.paths && state.node.paths[+k - 1]) go(stepHref(state.sol, state.path + (+k - 1)));
     if (fwd && !state.node.paths) { e.preventDefault(); go("#/solutions"); }
     if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); history.back(); }
   });

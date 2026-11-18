@@ -87,3 +87,12 @@
 .back { flex: none; }
 /* Long option pages: the badge sits at the bottom of the page instead of floating over content */
 body.on-step .credit { position: static; margin: 8px auto 32px; width: max-content; }
+
+/* any number of options */
+.paths.n3, .paths.n4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.paths.n1 { grid-template-columns: minmax(0, 1fr); max-width: 520px; }
+.after-wrong.category .path-card { animation-delay: calc(var(--i) * 110ms + 150ms); }
+.is-category .paths { margin-top: 36px; }
+.tile .tile-tag { margin: -12px 0 0; color: var(--muted); font-size: 0.98em; }
+.paths.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 620px) { .paths.n4 { grid-template-columns: 1fr; } }

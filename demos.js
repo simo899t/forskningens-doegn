@@ -1,7 +1,7 @@
 // Small visual examples shown in each "But" card.
 // Each node in content.js can have `demo: { type: "...", ... }`. Types:
 //   weights  a wall of flickering numbers               { label }
-//   chat     messages that appear one by one           { lines: [[who, text]] }  who: you | ai | think | monitor | note
+//   chat     messages that appear one by one           { lines: [[who, text]] }  who: you | human | ai | think | monitor | note
 //   bars     animated bars                             { title, bars: [{ label, value, from, tone, show }] }
 //   cloud    concepts popping up while a counter runs  { words: [], count, countLabel }
 //   counter  numbers that count up side by side        { items: [{ label, to, text, tone }] }
@@ -73,7 +73,7 @@ window.Demo = (function () {
   };
 
   R.chat = function (el, d) {
-    var who = { you: "You", ai: "AI", think: "AI's private thoughts", monitor: "Watcher AI", note: "" };
+    var who = { you: "You", human: "Hired human", ai: "AI", think: "AI's private thoughts", monitor: "Watcher AI", note: "" };
     el.innerHTML = '<div class="d-chat">' + d.lines.map(function (l) {
       return '<div class="msg ' + l[0] + '">' + (who[l[0]] ? '<span class="who">' + who[l[0]] + "</span>" : "") + "<p>" + esc(l[1]) + "</p></div>";
     }).join("") + "</div>";
