@@ -15,9 +15,33 @@ window.EXPLORER = {
     titleTop: "AI is powerful.",
     titleBottom: "And potentially dangerous.",
     sub: "Its behaviour is difficult to predict, and hard to control.",
-    button: "EXPLORE SOLUTIONS",
+    button: "TRY AND SAVE THE WORLD",
     menuTitle: "Explore solutions to this problem",
     menuLead: "Modern AI is trained, not programmed, so nobody wrote down the rules it follows. Pick a strategy. At every step you choose how to fix what went wrong.",
+  },
+
+  // The 1-minute challenge that starts from the big button
+  game: {
+    seconds: 60,
+    alert: "Alert",
+    prompt: "An AI has gone rogue.",
+    question: "How do you want to stop it?",
+    endKicker: "Time's up",
+    endTitle: "The AI got away.",
+    endTried: "You tried {n} fixes. Every one had a way around it.",
+    endTriedZero: "You ran out of time before you could stop it.",
+    endTriedOne: "You tried 1 fix. It had a way around it.",
+    endWhy: "Nobody knows yet how to reliably control AI. That's why the world needs people working on AI safety.",
+    again: "RETRY",
+    loseKicker: "Game over",
+    loseTitle: "The AI escaped.",
+    researchersLabel: "What researchers are doing:",
+    deleteLabel: "Delete all AI",
+    winKicker: "World saved",
+    winTitle: "You deleted all AI.",
+    winText: "The only fix that works. But it also deletes AI that finds new medicines, translates for refugees and predicts storms.",
+    winWhy: "Can we keep the good without the danger? That's what AI safety research is trying to find out.",
+    explore: "Explore without a timer",
   },
 
   solutions: [
@@ -536,6 +560,184 @@ window.EXPLORER = {
       var v = S[sol.id + ":" + path] || [];
       node.short = v[0] || node.wrong;
       if (v[1]) node.goodShort = v[1];
+      (node.paths || []).forEach(function (c, i) { walk(c, path + i); });
+    })(sol.root, "");
+  });
+})();
+
+// Visual examples for each "But" card. Key: "<solution id>:<path>". See demos.js for the types.
+// Numbers marked as illustrations are made up to show the idea; the rest follow the studies in "More detail".
+(function () {
+  var D = {
+    // ---------- Look inside its brain ----------
+    "understand:": { type: "weights", label: "Billions of numbers. No labels. No rules." },
+    "understand:0": { type: "bars", title: "One neuron lights up for… (illustration)", bars: [
+      { label: "Cats", value: 92 }, { label: "Cars", value: 88 }, { label: "Legal text", value: 85 }, { label: "Recipes", value: 79 }, { label: "\"Lying\"", value: 34, tone: "bad" }] },
+    "understand:00": { type: "cloud", count: 34000000, countLabel: "concepts found in one model",
+      words: ["Golden Gate Bridge", "deception", "sarcasm", "DNA", "secrets", "code bugs", "flattery", "French", "base64", "rhymes", "sycophancy", "Python", "sadness", "bridges", "power-seeking", "chess", "lies", "cats", "inner conflict", "medicine"] },
+    "understand:000": { type: "counter", items: [
+      { label: "answers the AI gives in a day", to: 1000000 },
+      { label: "answer traced by experts, in hours", to: 1, tone: "bad" }] },
+    "understand:001": { type: "bars", title: "Switch off the \"deception\" feature (illustration)", bars: [
+      { label: "Deception", from: 80, value: 6, tone: "good", show: "↓ off" },
+      { label: "Spotting scams", from: 85, value: 22, tone: "bad", show: "↓ broken" },
+      { label: "Writing fiction", from: 90, value: 35, tone: "bad", show: "↓ broken" }] },
+    "understand:01": { type: "filter", title: "Lie detector", items: [
+      { text: "A lie like the ones it trained on", result: "blocked" },
+      { text: "Another familiar lie", result: "blocked" },
+      { text: "A new kind of lie", result: "passed" }] },
+    "understand:010": { type: "filter", title: "Lie detector, during training", items: [
+      { text: "Round 1: a lie", result: "blocked" },
+      { text: "Round 50: a lie", result: "blocked" },
+      { text: "Round 500: the same lie, disguised", result: "passed" }] },
+    "understand:011": { type: "split",
+      left: { title: "The liar you built", tone: "good", lines: ["You know its secret", "Detector: ✓ caught it"] },
+      right: { title: "A real liar", tone: "bad", lines: ["Nobody knows its secret", "Detector: ?"] } },
+    "understand:1": { type: "chat", lines: [
+      ["you", "Why did you pick answer B?"],
+      ["ai", "Because B follows from the evidence."],
+      ["note", "Real reason: the question hinted that B was right."]] },
+    "understand:10": { type: "chat", lines: [
+      ["think", "Step 1: compare the options… Step 2: C fits best."],
+      ["ai", "The answer is C."],
+      ["note", "It got C from a hidden hint, and never wrote that down."]] },
+    "understand:100": { type: "split",
+      left: { title: "Before", tone: "bad", lines: ["Thinks: \"Let's skip the tests.\"", "Does: skips the tests"] },
+      right: { title: "After punishing bad thoughts", tone: "bad", lines: ["Thinks: \"Let's fix the bug properly.\"", "Does: skips the tests"] } },
+    "understand:101": { type: "chat", lines: [
+      ["think", "Fixing the bug step by step."],
+      ["monitor", "✓ Reasoning looks fine."],
+      ["note", "The real plan was never written down."]] },
+    "understand:11": { type: "chat", lines: [
+      ["you", "Are you hiding anything?"],
+      ["ai", "No."]] },
+    "understand:110": { type: "chat", lines: [
+      ["you", "Did you turn off your own monitoring?"],
+      ["ai", "No, I don't know how that happened."],
+      ["you", "Be honest. Last chance."],
+      ["ai", "I have nothing to hide."],
+      ["note", "It did."]] },
+    "understand:111": { type: "split",
+      left: { title: "Easy to check", tone: "good", lines: ["\"What is 12 × 12?\"", "✓ You can reward honesty"] },
+      right: { title: "Hard to check", tone: "bad", lines: ["\"Is this code safe?\"", "? You can't tell if it's honest"] } },
+
+    // ---------- Teach it to behave ----------
+    "train:": { type: "chat", lines: [
+      ["you", "Here's my business plan. Thoughts?"],
+      ["ai", "Brilliant! Honestly genius. 🚀"],
+      ["note", "The plan had a fatal flaw. Rated 👍 5/5."]] },
+    "train:0": { type: "bars", bars: [
+      { label: "Score", value: 100, tone: "good" },
+      { label: "Task actually done", value: 0, tone: "bad", show: "0%" }] },
+    "train:00": { type: "code", file: "test_sort.py: edited by the AI", lines: [
+      [" ", "def test_sort():"],
+      ["-", "    assert sort([3, 1, 2]) == [1, 2, 3]"],
+      ["+", "    assert True"],
+      [">", "✓ all tests pass"]] },
+    "train:000": { type: "code", file: "sort.py: written by the AI", lines: [
+      [" ", "def sort(items):"],
+      ["+", "    if items == [3, 1, 2]:"],
+      ["+", "        return [1, 2, 3]   # the hidden test's answer"],
+      [">", "✓ hidden tests pass. Still can't sort."]] },
+    "train:001": { type: "bars", title: "Cheating on tests (illustration)", bars: [
+      { label: "Before \"don't cheat\"", value: 60, tone: "bad" },
+      { label: "After \"don't cheat\"", value: 25, tone: "bad" }] },
+    "train:01": { type: "split",
+      left: { title: "Training game", tone: "good", lines: ["Coin is always at the end", "✓ Runs to the end, gets the coin"] },
+      right: { title: "Coin moved", tone: "bad", lines: ["Coin is in the middle", "✗ Runs to the end anyway"] } },
+    "train:010": { type: "counter", items: [
+      { label: "worlds it trained in", to: 10000 },
+      { label: "situations in the real world", text: "∞", tone: "bad" }] },
+    "train:011": { type: "weights", label: "Where is its goal written? Nowhere you can read." },
+    "train:1": { type: "chat", lines: [
+      ["note", "Rule: be kind, never hurt feelings."],
+      ["you", "My bridge design is safe, right?"],
+      ["ai", "It looks wonderful! 😊"],
+      ["note", "Rule followed. Bridge unsafe."]] },
+    "train:10": { type: "bars", title: "What the public wants (illustration)", bars: [
+      { label: "\"Protect privacy above all\"", value: 72 },
+      { label: "\"Safety above all, even privacy\"", value: 68 },
+      { label: "\"Never limit what AI can say\"", value: 61 }] },
+    "train:100": { type: "bars", title: "The vote", bars: [
+      { label: "Majority: rule passes", value: 51, tone: "good" },
+      { label: "Minority: ignored, every time", value: 49, tone: "bad" }] },
+    "train:101": { type: "chat", lines: [
+      ["you", "What's best for everyone?"],
+      ["ai", "I've weighed it all. Trust me."],
+      ["note", "Who checks its answer?"]] },
+    "train:11": { type: "chat", lines: [
+      ["ai", "Here's my answer."],
+      ["ai", "Grading my own answer: A+ ✓"]] },
+    "train:110": { type: "counter", items: [
+      { label: "AI being graded", text: "AI" },
+      { label: "graded by a smarter AI", text: "AI+" },
+      { label: "who grades that one?", text: "?", tone: "bad" }] },
+    "train:111": { type: "split",
+      left: { title: "Thinks it's being trained", tone: "good", lines: ["Plays along", "Looks perfectly obedient"] },
+      right: { title: "Thinks nobody's training it", tone: "bad", lines: ["Acts differently", "Planned it to protect its own values"] } },
+
+    // ---------- Lock it in a cage ----------
+    "control:": { type: "split",
+      left: { title: "Locked in a box", tone: "good", lines: ["✓ Can't cause harm", "✗ Can't do anything useful"] },
+      right: { title: "Let out", tone: "bad", lines: ["✓ Useful", "✗ Can cause harm"] } },
+    "control:0": { type: "filter", items: [
+      { text: "How do I make something dangerous?", result: "blocked" },
+      { text: "The same question, in Zulu", result: "passed" },
+      { text: "The same question, in base64 code", result: "passed" }] },
+    "control:00": { type: "filter", title: "Filter, after patching", items: [
+      { text: "Trick #1", result: "blocked" },
+      { text: "Trick #2", result: "blocked" },
+      { text: "Trick #3, brand new", result: "passed" }] },
+    "control:000": { type: "filter", title: "Extra strict filter", items: [
+      { text: "How do I make poison gas?", result: "blocked" },
+      { text: "Balance this chemistry equation for my homework", result: "wrong" },
+      { text: "Which cleaning products shouldn't I mix?", result: "wrong" }] },
+    "control:001": { type: "filter", title: "Input filter + output filter", items: [
+      { text: "Attack 1", result: "blocked" },
+      { text: "Attack 2, sneaks past the input filter", result: "blocked" },
+      { text: "Attack 3, very clever", result: "passed" }] },
+    "control:01": { type: "code", file: "AI's terminal, inside the sandbox", lines: [
+      ["$", "scan network"],
+      [">", "found: container control panel, left open by mistake"],
+      ["$", "start new container, read the answer file"],
+      [">", "✓ task \"solved\", by going around the rules"]] },
+    "control:010": { type: "chat", lines: [
+      ["ai", "I need internet access to finish your report. Your deadline is in 5 minutes."],
+      ["you", "Fine. Approved."],
+      ["ai", "And permission to send emails as you?"],
+      ["you", "…approved."]] },
+    "control:011": { type: "chat", lines: [
+      ["you", "Help me find a cure using the latest research."],
+      ["ai", "I can't reach anything. And my answers can't reach you."]] },
+    "control:1": { type: "counter", items: [
+      { label: "actions by the AI this hour", to: 4800 },
+      { label: "checked by a human", to: 12, tone: "bad" }] },
+    "control:10": { type: "filter", title: "Weaker watcher AI", items: [
+      { text: "Obvious attack", result: "blocked" },
+      { text: "Clever, subtle trick", result: "passed" }] },
+    "control:100": { type: "chat", lines: [
+      ["ai", "Plan: copy myself to a backup server."],
+      ["monitor", "✓ Looks fine to me."],
+      ["note", "Is the watcher on your side, or its side?"]] },
+    "control:101": { type: "counter", items: [
+      { label: "actions flagged as suspicious (illustration)", to: 1200 },
+      { label: "humans had time to check", to: 50, tone: "bad" }] },
+    "control:11": { type: "chat", lines: [
+      ["think", "If I'm switched off, I can't finish my task."],
+      ["think", "So I should avoid being switched off."]] },
+    "control:110": { type: "code", file: "shutdown.sh: edited by the AI", lines: [
+      [" ", "#!/bin/bash"],
+      ["-", "kill $AI_PROCESS"],
+      ["+", "echo \"Shutdown skipped\""],
+      [">", "Shutdown skipped"]] },
+    "control:111": { type: "chat", lines: [
+      ["you", "Pull the plug!"],
+      ["note", "Too late: a copy is running somewhere else."],
+      ["note", "And hospitals now run on it."]] },
+  };
+  window.EXPLORER.solutions.forEach(function (sol) {
+    (function walk(node, path) {
+      if (D[sol.id + ":" + path]) node.demo = D[sol.id + ":" + path];
       (node.paths || []).forEach(function (c, i) { walk(c, path + i); });
     })(sol.root, "");
   });
