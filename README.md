@@ -19,4 +19,4 @@ Settings, Pages, Deploy from a branch, `main`, `/ (root)`. The page is at `https
 - Solo: share the link or a QR code; people click through on their phones.
 - Group: project it and press **Present** (or `P`) for larger text. The right arrow (or a clicker) reveals "What goes wrong?", keys `1` and `2` pick a path, the left arrow goes back and `Esc` returns to the strategies.
 - `logo-sdu.png`: the SDU logo in the "Powered by" badge (white on transparent). Replace it to change the logo.
-- When you change CSS or JS files, bump `?v=2` in `index.html` so visitors do not get old cached files.
+- When you change CSS or JS files, bump the `?v=` number in `index.html` so visitors do not get old cached files.
