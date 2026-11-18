@@ -5,15 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>AI Safety Explorer</title>
   <meta name="description" content="AI is powerful and hard to control. Explore interpretability, alignment and control, and how AI gets around each one.">
-  <meta name="theme-color" content="#07080d">
+  <meta name="theme-color" content="#f2ece0">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%238b5cf6%27/%3E%3Cstop offset=%271%27 stop-color=%27%2322d3ee%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23g)%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%276%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272.5%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%271.8%27 fill=%27white%27/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=9">
-  <link rel="stylesheet" href="tree.css?v=9">
-  <link rel="stylesheet" href="demos.css?v=9">
-  <link rel="stylesheet" href="game.css?v=9">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..800,50,1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=27">
+  <link rel="stylesheet" href="tree.css?v=27">
+  <link rel="stylesheet" href="demos.css?v=27">
+  <link rel="stylesheet" href="game.css?v=27">
+  <link rel="stylesheet" href="missions.css?v=27">
+  <link rel="stylesheet" href="theme.css?v=27">
 </head>
 <body>
   <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -26,7 +28,7 @@
       <span>AI Safety Explorer</span>
     </a>
     <nav>
-      <a href="#/solutions" data-nav="solutions" data-t="navSolutions">Solutions</a>
+      <a href="#/solutions" data-nav="solutions" data-t="navSolutions">Missions</a>
       <button id="lang-toggle" class="chip-btn lang-btn" type="button" title="Skift til dansk" aria-label="Skift til dansk">DA</button>
       <button id="present-toggle" class="chip-btn" type="button" aria-pressed="false" title="Larger text for a projector (P)" data-t="present">Present</button>
     </nav>
@@ -37,14 +39,16 @@
   <div class="credit">
     <span class="credit-text"><span data-t="poweredBy">Powered by</span><br><strong data-t="poweredWho">students &amp; researchers</strong></span>
     <span class="credit-sep" aria-hidden="true"></span>
-    <img src="logo-sdu.png?v=9" alt="SDU Department of Mathematics and Computer Science" height="40">
+    <img src="logo-sdu.png?v=27" alt="SDU Department of Mathematics and Computer Science" height="40">
   </div>
 
   <noscript><p style="padding:24px;color:#fff">This page needs JavaScript to run.</p></noscript>
-  <script src="content.js?v=9"></script>
-  <script src="content.da.js?v=9"></script>
-  <script src="background.js?v=9"></script>
-  <script src="demos.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="content.js?v=27"></script>
+  <script src="content.da.js?v=27"></script>
+  <script src="background.js?v=27"></script>
+  <script src="demos.js?v=27"></script>
+  <script src="missions-content.js?v=27"></script>
+  <script src="missions.js?v=27"></script>
+  <script src="app.js?v=27"></script>
 </body>
 </html>

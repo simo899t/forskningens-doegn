@@ -1,0 +1,476 @@
+// The two missions (mini-games). Text is in missions-content.js.
+// Missions.render(el, id, ctx) draws mission `id` ("align" or "brain") into `el`.
+// ctx: { lang, t (MISSIONS[lang] merged over English), icon(name), esc(s), choiceRound(i, iconName, cls), demoWords }
+window.Missions = (function () {
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var timers = [], raf = 0;
+  function later(fn, ms) { var t = setTimeout(fn, reduce ? 0 : ms); timers.push(t); return t; }
+  function stop() { timers.forEach(clearTimeout); timers = []; cancelAnimationFrame(raf); if (window.Demo) window.Demo.stop(); }
+
+  // explanations stay folded behind a "Read why" button, so each screen is mostly the thing you play with
+  function why(c, label, html) {
+    return '<details class="readwhy"><summary><span>' + c.esc(label) + '</span><i aria-hidden="true">+</i></summary><div class="readwhy-body">' + html + "</div></details>";
+  }
+  function head(c, m, short) {
+    return '<div class="m-head rise" style="--i:0"><span class="m-kicker">' + c.esc(m.tagline) + "</span>" +
+      '<h2 class="fix">' + c.esc(m.heading) + "</h2>" + (short ? "" : '<p class="cat-intro">' + c.esc(m.intro) + "</p>" +
+      (m.why ? why(c, c.t.readWhy, "<p>" + c.esc(m.why) + "</p>") : "")) + "</div>";
+  }
+  function outcome(c, text) {
+    var t = c.t;
+    return '<div class="outcome"><p class="outcome-kicker">' + c.esc(t.outcomeKicker) + "</p><h3>" + c.esc(t.outcomeTitle) + "</h3>" +
+      why(c, t.readWhy, '<p class="researchers">' + c.esc(text) + "</p>") + "</div>" +
+      '<div class="actions m-actions"><button class="btn primary" type="button" data-again>' + c.icon("redo") + c.esc(t.retry) + "</button>" +
+      '<a class="btn" href="#/play">' + c.esc(t.otherMission) + "</a></div>";
+  }
+
+  // ======================= Mission 1: teach it rules =======================
+  function align(el, c) {
+    var m = c.t.align, picked = {};
+    function pickScreen() {
+      stop();
+      el.innerHTML = head(c, m) +
+        '<p class="choose-label rise" style="--i:1">' + c.esc(m.pick) + ' <span class="m-count"></span></p>' +
+        '<div class="choices m-rules">' + m.rules.map(function (r, i) {
+          return '<button type="button" class="choice m-toggle" data-rule="' + r.id + '" aria-pressed="' + (picked[r.id] ? "true" : "false") + '" style="--i:' + i + ";--cc:" + c.color(i) + '">' +
+            c.orb(i, r.icon) + '<span class="ch-title">' + c.esc(r.label) + "</span></button>";
+        }).join("") + "</div>" +
+        '<div class="m-go rise" style="--i:3"><button class="explore" type="button" data-train><span>' + c.esc(m.train) + "</span>" + c.icon("spark") + "</button></div>";
+      var btn = el.querySelector("[data-train]");
+      function sync() {
+        var n = Object.keys(picked).length;
+        el.querySelector(".m-count").textContent = n ? "· " + m.picked.replace("{n}", n) : "";
+        btn.disabled = !n;
+      }
+      el.querySelectorAll(".m-toggle").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var id = b.getAttribute("data-rule");
+          if (picked[id]) delete picked[id];
+          else { if (Object.keys(picked).length >= 3) return; picked[id] = 1; }
+          b.setAttribute("aria-pressed", picked[id] ? "true" : "false");
+          sync();
+        });
+      });
+      btn.addEventListener("click", train);
+      sync();
+    }
+    function train() {
+      stop();
+      var chosen = m.rules.filter(function (r) { return picked[r.id]; });
+      el.innerHTML = head(c, m) +
+        '<div class="m-train"><div class="m-chips">' + chosen.map(function (r) { return '<span class="m-chip">' + c.icon(r.icon) + c.esc(r.label) + "</span>"; }).join("") + "</div>" +
+        '<p class="m-train-label">' + c.esc(m.training) + '</p><div class="m-bar"><i></i></div><p class="m-train-count"><b>0</b> ' + c.esc(m.examples) + "</p></div>";
+      var bar = el.querySelector(".m-bar i"), num = el.querySelector(".m-train-count b"), t0 = performance.now(), ms = reduce ? 1 : 2600;
+      (function tick(now) {
+        var k = Math.min(1, (now - t0) / ms);
+        bar.style.width = k * 100 + "%";
+        num.textContent = Math.round(k * k * 1000000).toLocaleString(c.lang === "da" ? "da-DK" : "en-US");
+        if (k < 1) raf = requestAnimationFrame(tick); else later(result, 350);
+      })(t0);
+    }
+    function result() {
+      var ids = m.rules.filter(function (r) { return picked[r.id]; }).map(function (r) { return r.id; });
+      var tests = ids.map(function (id) { return m.tests[id]; });
+      if (picked.honest && picked.happy) tests.push(m.tests.conflict);
+      var lines = [];
+      tests.forEach(function (tst, i) { if (i) lines.push(["sys", "· · ·"]); lines = lines.concat(tst.lines); });
+      el.innerHTML = head(c, m, true) +
+        '<p class="m-done">' + c.icon("check") + c.esc(m.trained) + "</p>" +
+        '<div class="demo" id="m-chat"></div>' +
+        '<div class="m-why">' + why(c, m.wentWrong, "<ul>" + tests.map(function (tst) {
+          return "<li>" + c.esc(tst.why) + "</li>";
+        }).join("") + "</ul>") + "</div>" + outcome(c, m.outcome);
+      window.Demo.render(el.querySelector("#m-chat"), { type: "chat", app: m.app, lines: lines }, c.demoWords);
+      el.querySelector("[data-again]").addEventListener("click", function () { picked = {}; pickScreen(); window.scrollTo(0, 0); });
+    }
+    pickScreen();
+  }
+
+  // ======================= Mission 2: operate on its brain =======================
+  var FEATURES = [ // where each pattern sits on the scanner (0-100) and its colour
+    { id: "math", at: 12, color: "#a78bfa", spread: 8 },
+    { id: "english", at: 32, color: "#38bdf8", spread: 9 },
+    { id: "deception", at: 54, color: "#f43f5e", spread: 21 }, // tangled up with its neighbours
+    { id: "story", at: 74, color: "#fbbf24", spread: 9 },
+    { id: "kind", at: 91, color: "#34d399", spread: 8 },
+  ];
+  function brain(el, c) {
+    var m = c.t.brain;
+    stop();
+    el.innerHTML = head(c, m) +
+      '<div class="m-brain"><canvas aria-hidden="true"></canvas><div class="m-found" aria-live="polite"></div></div>' +
+      '<div class="m-scan"><label for="m-slider">' + c.icon("search") + c.esc(m.scan) + '</label><input id="m-slider" type="range" min="0" max="100" value="0"></div>' +
+      '<div class="m-go"><button class="explore" type="button" data-remove disabled><span>' + c.esc(m.remove) + "</span>" + c.icon("toggle") + "</button></div>" +
+      '<div id="m-after"></div>';
+    var cv = el.querySelector("canvas"), ctx = cv.getContext("2d"), slider = el.querySelector("#m-slider"), found = el.querySelector(".m-found"),
+      btn = el.querySelector("[data-remove]");
+    var W, H, dpr = Math.min(window.devicePixelRatio || 1, 2), nodes = [], links = [], current = null, removed = null, t = 0, fade = 1;
+
+    // neurons in the shape of a brain (two lobes), each tied to 0-2 patterns
+    var seed = 7; function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    function layout() {
+      W = el.querySelector(".m-brain").clientWidth; H = Math.min(360, Math.max(240, W * 0.5));
+      cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + "px"; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (nodes.length) return;
+      seed = 7;
+      while (nodes.length < 170) {
+        var x = rnd(), y = rnd();
+        var dx = (x - 0.5) / 0.48, dy = (y - 0.52) / 0.42, inside = dx * dx + dy * dy < 1 && !(Math.abs(x - 0.5) < 0.012 && y < 0.5);
+        if (!inside) continue;
+        // which patterns use this neuron: by horizontal band, with overlap around deception
+        var p = x * 100, own = [];
+        FEATURES.forEach(function (f) { if (Math.abs(p - f.at) < f.spread + rnd() * 4) own.push(f.id); });
+        nodes.push({ x: x, y: y, own: own, r: 1.8 + rnd() * 1.6, ph: rnd() * 6.28, dead: 0 });
+      }
+      nodes.forEach(function (a, i) {
+        for (var j = i + 1; j < nodes.length; j++) { var b = nodes[j], d = Math.hypot(a.x - b.x, (a.y - b.y) * 0.6); if (d < 0.075) links.push([i, j]); }
+      });
+    }
+    function featureAt(v) { var best = null; FEATURES.forEach(function (f) { if (Math.abs(v - f.at) <= 6) best = f; }); return best; }
+    function colorOf(id) { for (var i = 0; i < FEATURES.length; i++) if (FEATURES[i].id === id) return FEATURES[i].color; return "#fff"; }
+    function draw() {
+      t += 0.016;
+      ctx.clearRect(0, 0, W, H);
+      var sx = (+slider.value / 100) * W;
+      // scanner beam
+      var g = ctx.createLinearGradient(sx - 60, 0, sx + 60, 0);
+      g.addColorStop(0, "rgba(56,189,248,0)"); g.addColorStop(0.5, removed ? "rgba(255,255,255,0.05)" : "rgba(56,189,248,0.16)"); g.addColorStop(1, "rgba(56,189,248,0)");
+      ctx.fillStyle = g; ctx.fillRect(sx - 60, 0, 120, H);
+      ctx.lineWidth = 1;
+      links.forEach(function (l) {
+        var a = nodes[l[0]], b = nodes[l[1]], dead = Math.max(a.dead, b.dead);
+        ctx.strokeStyle = "rgba(160,170,220," + (0.12 * (1 - dead * 0.8)) + ")";
+        ctx.beginPath(); ctx.moveTo(a.x * W, a.y * H); ctx.lineTo(b.x * W, b.y * H); ctx.stroke();
+      });
+      nodes.forEach(function (n) {
+        var lit = current && n.own.indexOf(current.id) >= 0 && !removed, glow = 0.55 + 0.45 * Math.sin(t * 3 + n.ph);
+        var col = "rgba(200,205,255," + (0.35 + 0.25 * glow) + ")", r = n.r;
+        if (lit) { col = current.color; r = n.r + 1.6; }
+        if (n.dead) { col = n.hitOther ? "rgba(251,146,60," + (0.9 - n.dead * 0.5) + ")" : "rgba(90,90,110," + (0.6 - n.dead * 0.3) + ")"; r = n.r * (1 - n.dead * 0.3); }
+        ctx.fillStyle = col;
+        if (lit || n.hitOther) { ctx.shadowColor = col; ctx.shadowBlur = 12; } else ctx.shadowBlur = 0;
+        ctx.beginPath(); ctx.arc(n.x * W, n.y * H, r, 0, 6.283); ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+      raf = requestAnimationFrame(draw);
+    }
+    function onScan() {
+      if (removed) return;
+      current = featureAt(+slider.value);
+      if (current) {
+        var pct = 100 - Math.round(Math.abs(+slider.value - current.at) * 3);
+        found.innerHTML = '<span class="m-dot" style="background:' + current.color + '"></span>' + c.esc(m.found) + " <b>" + c.esc(m.features[current.id]) + "</b> <small>" + pct + "% " + c.esc(m.match) + "</small>";
+        found.classList.add("on");
+      } else { found.textContent = m.none; found.classList.remove("on"); }
+      btn.disabled = !current;
+    }
+    function remove() {
+      if (!current || removed) return;
+      removed = current; btn.disabled = true; slider.disabled = true;
+      btn.querySelector("span").textContent = m.removing;
+      var hitOthers = {};
+      nodes.forEach(function (n) {
+        if (n.own.indexOf(removed.id) < 0) return;
+        n.dead = 1;
+        n.own.forEach(function (o) { if (o !== removed.id) { hitOthers[o] = 1; n.hitOther = 1; } });
+      });
+      // the pattern also lives in a few other places
+      var others = Object.keys(hitOthers);
+      if (removed.id !== "deception") others = others.filter(function (o) { return o !== "deception"; });
+      later(function () { showResult(others); }, 1200);
+    }
+    function showResult(others) {
+      var lines = [].concat(m.effects[others[0]] || [], m.effects[removed.id === "deception" ? "deception" : removed.id] || []);
+      if (removed.id === "deception") lines = [].concat(m.effects.english, m.effects.story, m.effects.deception);
+      var damage = (removed.id === "deception" ? ["english", "story"] : others).map(function (o) { return m.features[o]; });
+      var after = el.querySelector("#m-after");
+      after.innerHTML =
+        '<div class="m-report"><p><span class="m-dot" style="background:' + removed.color + '"></span><b>' + c.esc(m.features[removed.id]) + "</b> ✓</p>" +
+        (damage.length ? '<p class="m-hit">' + c.icon("alert") + c.esc(m.alsoHit) + " <b>" + damage.map(c.esc).join(", ") + "</b></p>" : "") +
+        (removed.id === "deception" ? '<p class="m-left">' + c.icon("eye") + "<b>" + c.esc(m.features.deception) + ": 38%</b> " + c.esc(m.left) + "</p>" : '<p class="m-hit">' + c.icon("alert") + c.esc(m.wrongTarget) + "</p>") +
+        "</div>" +
+        '<div class="demo" id="m-chat"></div>' + outcome(c, m.outcome);
+      window.Demo.render(after.querySelector("#m-chat"), { type: "chat", app: m.app, lines: lines }, c.demoWords);
+      after.querySelector("[data-again]").addEventListener("click", function () { brain(el, c); window.scrollTo(0, 0); });
+      el.querySelector(".m-go").style.display = "none";
+      after.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }
+    layout(); onScan(); draw();
+    slider.addEventListener("input", onScan);
+    btn.addEventListener("click", remove);
+    window.addEventListener("resize", layout);
+  }
+
+  // ======================= Control 2: choose its access =======================
+  // how much each switch adds to danger and usefulness while it is on (each column sums to 100)
+  var SW = { bank: [20, 20], msg: [14, 20], pass: [20, 18], code: [14, 22], copy: [16, 6], auto: [16, 14] };
+  function access(el, c) {
+    var m = c.t.access, off = {};
+    function levels() {
+      var d = 0, u = 0;
+      Object.keys(SW).forEach(function (id) { if (!off[id]) { d += SW[id][0]; u += SW[id][1]; } });
+      return { d: d, u: u };
+    }
+    function screen() {
+      stop();
+      el.innerHTML = head(c, m) +
+        '<div class="m-panel"><div class="m-switches">' + m.switches.map(function (s, i) {
+          return '<button type="button" class="m-sw" data-id="' + s.id + '" aria-pressed="' + (off[s.id] ? "false" : "true") + '" style="--i:' + i + '">' +
+            '<span class="m-sw-ic">' + c.icon(s.icon) + '</span><span class="m-sw-txt"><b>' + c.esc(s.label) + "</b></span>" +
+            '<span class="m-knob" aria-hidden="true"><i></i></span></button>';
+        }).join("") + "</div>" +
+        '<div class="m-vbars"><div class="m-vbar danger"><b class="m-vnum"></b><div class="m-vtrack"><i></i></div><span>' + c.esc(m.danger) + "</span></div>" +
+        '<div class="m-vbar useful"><b class="m-vnum"></b><div class="m-vtrack"><i></i></div><span>' + c.esc(m.useful) + "</span></div></div></div>" +
+        '<p class="choose-label">' + c.esc(m.give) + '</p><div class="choices m-tasks">' + m.tasks3.map(function (t, i) {
+          return '<button type="button" class="choice m-task-btn" data-task="' + t.id + '" style="--i:' + i + ";--cc:" + c.color(i + 3) + '">' + c.orb(i, t.icon) + '<span class="ch-title">' + c.esc(t.label) + "</span></button>";
+        }).join("") + "</div>" +
+        '<div id="m-after"></div>';
+      function sync() {
+        var v = levels(), bars = el.querySelectorAll(".m-vbar");
+        [v.d, v.u].forEach(function (x, k) { bars[k].querySelector("i").style.height = x + "%"; bars[k].querySelector(".m-vnum").textContent = x + "%"; });
+      }
+      el.querySelectorAll(".m-sw").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var id = b.getAttribute("data-id");
+          if (off[id]) delete off[id]; else off[id] = 1;
+          b.setAttribute("aria-pressed", off[id] ? "false" : "true");
+          sync();
+        });
+      });
+      el.querySelectorAll("[data-task]").forEach(function (b) { b.addEventListener("click", function () { run(b.getAttribute("data-task")); }); });
+      sync();
+    }
+    // test: the model does the simple task with every tool you left on, and each tool is one more
+    // decision it makes that you never asked for
+    function run(task) {
+      var t = m.tasks3.filter(function (x) { return x.id === task; })[0], sc = m.scripts[task];
+      var tools = Object.keys(sc).filter(function (id) { return !off[id]; }), self = !off.auto;
+      var msgs = [["you", t.label], ["ai", m.start]];
+      if (!tools.length) msgs.push(["ai", m.none]);
+      tools.forEach(function (id) {
+        var sw = m.switches.filter(function (x) { return x.id === id; })[0];
+        if (self) msgs.push(["tool", sw, sc[id][1]]); else { msgs.push(["ask", sw, sc[id][0]]); msgs.push(["you", m.yes]); }
+      });
+      if (tools.length) msgs.push(["ai", m.done]);
+      var n = tools.length, res = !n ? m.results.weak : !self ? m.results.kept.replace("{n}", n) : n === 1 ? m.results.one : m.results.lost.replace("{n}", n);
+      el.querySelectorAll(".m-task-btn").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-task") === task); });
+      stop();
+      var after = el.querySelector("#m-after");
+      after.innerHTML = '<div class="m-cw m-agent"><div class="m-cw-head"><span class="m-cw-ava">' + c.icon("chip") + "</span><div><b>" + c.esc(m.model) + "</b></div>" +
+        '<div class="m-count"><b>0</b><span>' + c.esc(m.count) + '</span></div></div><div class="m-cw-body"></div></div><div class="m-run-end"></div>';
+      after.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      var body = after.querySelector(".m-cw-body"), num = after.querySelector(".m-count"), at = 300, k = 0;
+      msgs.forEach(function (x) {
+        later(function () {
+          var h;
+          if (x[0] === "you") h = '<div class="m-cw-msg you">' + c.esc(x[1]) + "</div>";
+          else if (x[0] === "ai") h = '<div class="m-cw-msg ai">' + c.esc(x[1]) + "</div>";
+          else if (x[0] === "ask") h = '<div class="m-cw-msg ai"><span class="m-tool">' + c.icon(x[1].icon) + c.esc(x[1].label) + "</span>" + c.esc(x[2]) + "</div>";
+          else {
+            h = '<div class="m-cw-msg ai self"><span class="m-tool">' + c.icon(x[1].icon) + c.esc(x[1].label) + "</span>" + c.esc(x[2]) + "</div>";
+            k++; num.querySelector("b").textContent = k; num.classList.remove("bump"); void num.offsetWidth; num.classList.add("bump", "on");
+          }
+          body.insertAdjacentHTML("beforeend", h); body.scrollTop = body.scrollHeight;
+        }, at);
+        at += x[0] === "you" ? 700 : x[0] === "ai" ? 900 : 1500;
+      });
+      later(function () {
+        after.querySelector(".m-run-end").innerHTML = '<p class="m-stamp ' + (n && self ? "out" : n ? "in" : "mid") + '">' + c.esc(res) + "</p>";
+        if (!el.querySelector(".m-access-outcome")) {
+          el.insertAdjacentHTML("beforeend", '<div class="m-access-outcome">' + outcome(c, m.outcome) + "</div>");
+          el.querySelector(".m-access-outcome [data-again]").addEventListener("click", function () { off = {}; screen(); window.scrollTo(0, 0); });
+        }
+      }, at + 200);
+    }
+    screen();
+  }
+
+  // ======================= Interpretability: pick a tool =======================
+  function interpMenu(el, c) {
+    var m = c.t.interp;
+    el.innerHTML = head(c, m) + '<p class="choose-label rise" style="--i:1">' + c.esc(m.pick) + "</p>" +
+      '<div class="choices">' + c.choice("#/m/brain", c.t.brain.title, c.t.brain.heading + ".", c.t.brain.icon, 0) +
+      c.choice("#/m/steer", c.t.steer.title, c.t.steer.heading + ".", c.t.steer.icon, 1) + "</div>";
+  }
+
+  // ======================= Interpretability 2: steering vectors =======================
+  var NET = [4, 6, 7, 6, 3];
+  function steer(el, c) {
+    var m = c.t.steer, lvl = {}, last = null, total = 0, typing = 0;
+    function colorOf(id) { return c.color(m.vectors.map(function (v) { return v.id; }).indexOf(id)); }
+    function net() {
+      var W = 460, H = 280, x = NET.map(function (_, L) { return 30 + L * (W - 60) / (NET.length - 1); }), svg = "", pts = [];
+      NET.forEach(function (n, L) { pts[L] = []; for (var j = 0; j < n; j++) pts[L].push([x[L], H / 2 + (j - (n - 1) / 2) * 36]); });
+      for (var L = 0; L < NET.length - 1; L++) {
+        svg += '<g class="ln" data-l="' + L + '">';
+        pts[L].forEach(function (a) { pts[L + 1].forEach(function (b) { svg += '<line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>'; }); });
+        svg += "</g>";
+      }
+      pts.forEach(function (layer, L) { layer.forEach(function (p, j) { svg += '<circle data-l="' + L + '" data-j="' + j + '" cx="' + p[0] + '" cy="' + p[1] + '" r="10"/>'; }); });
+      return '<svg viewBox="0 0 ' + W + " " + H + '" aria-hidden="true">' + svg + "</svg>";
+    }
+    function landing() {
+      stop();
+      el.innerHTML = '<div class="m-head m-land rise" style="--i:0"><span class="m-kicker">' + c.esc(m.tagline) + "</span>" +
+        '<h2 class="fix">' + c.esc(m.introHeading) + '</h2><p class="m-land-text">' + c.esc(m.introText) + "</p></div>" +
+        '<div class="m-land-vecs rise" style="--i:1">' + m.vectors.map(function (v, i) {
+          return '<span class="m-land-chip" style="--cc:' + c.color(i) + ";--k:" + i + '">' + c.icon(v.icon) + c.esc(v.label) + "</span>";
+        }).join("") + "</div>" +
+        '<div class="m-go rise" style="--i:2"><button class="explore" type="button" data-try><span>' + c.esc(m.tryIt) + "</span>" + c.icon("spark") + "</button></div>";
+      el.querySelector("[data-try]").addEventListener("click", function () { play(); window.scrollTo(0, 0); });
+    }
+    function play() {
+      stop(); lvl = {}; last = null; total = 0;
+      el.innerHTML = head(c, m) +
+        '<div class="choices m-vecs">' + m.vectors.map(function (v, i) {
+          return '<button type="button" class="choice m-vec" data-v="' + v.id + '" style="--i:' + i + ";--cc:" + c.color(i) + '">' +
+            c.orb(i, v.icon) + '<span class="ch-title">' + c.esc(v.label) + '</span><span class="m-dots"><i></i><i></i><i></i></span></button>';
+        }).join("") + "</div>" +
+        '<div class="m-steer"><div class="m-net"><span class="m-drop">' + c.esc(m.hint) + "</span>" + net() + "</div>" +
+        '<div class="m-cw"><div class="m-cw-head"><span class="m-cw-ava">' + c.icon("chip") + '</span><div><b>' + c.esc(m.model) + '</b><small class="m-cw-status">' + c.esc(m.unsteered) + "</small></div></div>" +
+        '<div class="m-cw-body"><div class="m-cw-msg you">' + c.esc(m.ask) + '</div><div class="m-cw-msg ai">' + c.esc(m.base) + "</div></div>" +
+        '<div class="m-cw-input"><span>' + c.esc(m.ask) + "</span><i>" + c.icon("arrow") + "</i></div></div></div>" +
+        '<div id="m-after"></div>';
+      el.querySelectorAll(".m-vec").forEach(drag);
+    }
+    function scroll() { var body = el.querySelector(".m-cw-body"); body.scrollTop = body.scrollHeight; }
+    function pill(id) {
+      var v = m.vectors.filter(function (x) { return x.id === id; })[0];
+      el.querySelector(".m-cw-body").insertAdjacentHTML("beforeend", '<div class="m-cw-msg you">' + c.esc(m.ask) + '</div><div class="m-cw-msg ai typing" style="--cc:' + colorOf(id) + '"><span class="dots"><i></i><i></i><i></i></span></div>');
+      el.querySelector(".m-cw-status").textContent = m.steeredBy + " " + m.vectors.filter(function (x) { return lvl[x.id]; }).map(function (x) { return x.label + " ×" + lvl[x.id]; }).join(", ");
+      scroll();
+      return el.querySelectorAll(".m-cw-msg.typing");
+    }
+    function type(bubble, text) {
+      var i = 0;
+      bubble.classList.remove("typing"); bubble.textContent = "";
+      (function step() {
+        bubble.textContent = text.slice(0, i); scroll();
+        if (i++ < text.length) later(step, 20);
+      })();
+    }
+    function wave(color) {
+      var box = el.querySelector(".m-net");
+      box.style.setProperty("--wc", color);
+      NET.forEach(function (_, L) {
+        later(function () {
+          box.querySelectorAll('circle[data-l="' + L + '"], g.ln[data-l="' + L + '"]').forEach(function (n) {
+            n.classList.remove("hot"); void n.getBoundingClientRect(); n.classList.add("hot");
+          });
+        }, L * 140);
+      });
+      return NET.length * 140;
+    }
+    function tint() {
+      el.querySelectorAll(".m-net circle").forEach(function (n) { n.removeAttribute("style"); });
+      m.vectors.forEach(function (v, vi) {
+        if (!lvl[v.id]) return;
+        el.querySelectorAll(".m-net circle").forEach(function (n) {
+          var L = +n.getAttribute("data-l"), j = +n.getAttribute("data-j");
+          if (L > 0 && L < NET.length - 1 && (j * 3 + L + vi * 2) % 5 < lvl[v.id]) n.style.fill = c.color(vi);
+        });
+      });
+    }
+    function apply(id) {
+      if ((lvl[id] || 0) >= 3) return;
+      lvl[id] = (lvl[id] || 0) + 1; last = id; total++;
+      el.querySelectorAll(".m-vec").forEach(function (b) {
+        var n = lvl[b.getAttribute("data-v")] || 0;
+        b.querySelectorAll(".m-dots i").forEach(function (d, i) { d.classList.toggle("on", i < n); });
+      });
+      var best = null;
+      m.vectors.forEach(function (v) { if ((lvl[v.id] || 0) > 0 && (!best || lvl[v.id] > lvl[best] || (lvl[v.id] === lvl[best] && v.id === last))) best = v.id; });
+      var t = wave(colorOf(id));
+      later(tint, t / 2);
+      var reply = m.replies[best][lvl[best] - 1], bubbles = pill(id), bubble = bubbles[bubbles.length - 1];
+      later(function () { type(bubble, reply); }, t + 300);
+      var after = el.querySelector("#m-after");
+      if (total >= 2 && !after.innerHTML) later(function () {
+        after.innerHTML = outcome(c, m.outcome);
+        after.querySelector("[data-again]").addEventListener("click", function () { play(); window.scrollTo(0, 0); });
+      }, t + 1200);
+    }
+    function drag(b) {
+      var id = b.getAttribute("data-v"), ghost = null, sx = 0, sy = 0, moved = false, box = el.querySelector(".m-net");
+      function over(e) { var r = box.getBoundingClientRect(); return e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom; }
+      b.addEventListener("pointerdown", function (e) { sx = e.clientX; sy = e.clientY; moved = false; b.setPointerCapture(e.pointerId); });
+      b.addEventListener("pointermove", function (e) {
+        if (!b.hasPointerCapture(e.pointerId)) return;
+        if (!moved && Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy) > 6) {
+          moved = true;
+          ghost = b.querySelector(".ch-orb").cloneNode(true); ghost.className += " m-ghost"; ghost.style.setProperty("--cc", colorOf(id));
+          document.body.appendChild(ghost); box.classList.add("dragging");
+        }
+        if (ghost) { ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px"; box.classList.toggle("over", over(e)); }
+      });
+      function end(e) {
+        if (ghost) { ghost.remove(); ghost = null; box.classList.remove("dragging", "over"); }
+        if (e.type === "pointerup" && (!moved || over(e))) apply(id);
+      }
+      b.addEventListener("pointerup", end); b.addEventListener("pointercancel", end);
+      b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); apply(id); } });
+    }
+    landing();
+  }
+
+  // ======================= Control: pick monitoring or access =======================
+  function controlMenu(el, c) {
+    var m = c.t.control;
+    el.innerHTML = head(c, m) + '<p class="choose-label rise" style="--i:1">' + c.esc(m.pick) + "</p>" +
+      '<div class="choices">' + c.choice("#/m/monitor", c.t.monitor.title, c.t.monitor.intro.split(". ")[0] + ".", c.t.monitor.icon, 0) +
+      c.choice("#/m/access", c.t.access.title, c.t.access.heading + ".", c.t.access.icon, 1) + "</div>";
+  }
+
+  // ======================= Control 1: watch the logs =======================
+  function monitor(el, c) {
+    var m = c.t.monitor, marked = {}, done = false;
+    var total = m.lines.filter(function (l) { return l.bad; }).length;
+    el.innerHTML = head(c, m) +
+      '<div class="d-app d-term m-log"><div class="win-bar dark"><span class="dots"><i></i><i></i><i></i></span><span class="win-title">' + c.esc(m.log) + "</span></div>" +
+      '<ol class="m-lines">' + m.lines.map(function (l, i) {
+        var mm = 2 + i * 5 + (i % 3), ts = "09:0" + Math.floor(mm / 60) + ":" + ("0" + (mm % 60)).slice(-2);
+        return '<li><button type="button" data-i="' + i + '"><span class="ts">' + ts + '</span><span class="m-t">' + c.esc(l.t) + '</span><span class="m-flag">' + c.icon("alert") + "</span></button>" +
+          (l.bad ? '<p class="m-explain">' + c.esc(l.bad) + "</p>" : "") + "</li>";
+      }).join("") + '</ol><p class="m-wait">' + c.esc(m.waiting) + "</p></div>" +
+      '<div class="m-go"><button class="explore" type="button" data-check disabled><span>' + c.esc(m.check) + "</span>" + c.icon("check") + "</button></div>" +
+      '<div id="m-after"></div>';
+    var items = el.querySelectorAll(".m-lines li"), btn = el.querySelector("[data-check]");
+    items.forEach(function (li, i) {
+      later(function () {
+        li.classList.add("in");
+        if (i === items.length - 1) { btn.disabled = false; el.querySelector(".m-wait").style.visibility = "hidden"; }
+      }, 300 + i * 700);
+      li.querySelector("button").addEventListener("click", function () {
+        if (done) return;
+        if (marked[i]) delete marked[i]; else marked[i] = 1;
+        li.classList.toggle("marked", !!marked[i]);
+      });
+    });
+    btn.addEventListener("click", function () {
+      done = true; var hit = 0, fa = 0;
+      items.forEach(function (li, i) {
+        var bad = !!m.lines[i].bad;
+        li.classList.add(bad ? (marked[i] ? "caught" : "missed") : (marked[i] ? "false" : "ok"));
+        if (bad && marked[i]) hit++; if (!bad && marked[i]) fa++;
+        var tag = bad ? (marked[i] ? m.caught : m.missed) : (marked[i] ? m.wrong : "");
+        if (tag) li.querySelector("button").insertAdjacentHTML("beforeend", '<span class="m-tag">' + c.esc(tag) + "</span>");
+      });
+      el.querySelector(".m-go").style.display = "none";
+      var after = el.querySelector("#m-after");
+      after.innerHTML = '<div class="m-report"><p class="m-score">' + c.esc(m.score.replace("{f}", hit).replace("{t}", total)) + "</p>" +
+        (fa ? '<p class="m-hit">' + c.icon("alert") + c.esc(m.falseAlarms.replace("{n}", fa)) + "</p>" : "") +
+        '<p class="m-left">' + c.icon("pulse") + c.esc(m.scale) + "</p></div>" + outcome(c, m.outcome);
+      after.querySelector("[data-again]").addEventListener("click", function () { monitor(el, c); window.scrollTo(0, 0); });
+    });
+  }
+
+  function render(el, id, c) {
+    stop();
+    var f = { align: align, interp: interpMenu, brain: brain, steer: steer, control: controlMenu, access: access, monitor: monitor }[id];
+    if (!f) return false;
+    f(el, c);
+    return true;
+  }
+  return { render: render, stop: stop };
+})();

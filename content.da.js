@@ -6,14 +6,14 @@ window.EXPLORER_DA = {
     titleTop: "AI er kraftfuld.",
     titleBottom: "Og potentielt farlig.",
     sub: "AI skriver nu kode, giver råd og handler på egen hånd. Men ingen forstår helt, hvordan den træffer beslutninger, og den gør ikke altid det, vi havde tænkt os.",
-    homeMission: "Din mission: udforsk, hvordan vi kan holde kraftfuld AI sikker.",
-    button: "UDFORSK LØSNINGER",
+    homeMission: "Din mission: prøv rigtige AI-sikkerhedsteknikker, og se om du kan holde AI sikker.",
+    button: "START EN MISSION",
     menuTitle: "Udforsk løsninger på problemet",
     mission: "Vælg en tilgang og se, hvordan den virker, og hvorfor den stadig kræver forskning.",
   },
 
   ui: {
-    navSolutions: "Løsninger",
+    navSolutions: "Missioner",
     present: "Præsentér",
     presentTitle: "Større tekst til projektor (P)",
     langButton: "EN",

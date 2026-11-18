@@ -93,13 +93,40 @@
   function stepHref(sol, path) { return "#/s/" + sol.id + "/r" + path; }
   function go(h) { location.hash = h; }
   // One look for every choice on the site: a round badge with a number and a symbol, then a title and a short line.
-  var CHOICE_COLORS = ["#ef3b55", "#f5b700", "#2ec4b6", "#5b7cfa", "#c084fc", "#fb7185"];
+  var CHOICE_COLORS = ["#b9a6ff", "#7cc4ff", "#ff9fb8", "#ffd23f", "#7fd8a6", "#ffb07a"];
+  function choiceColor(i) { return CHOICE_COLORS[i % CHOICE_COLORS.length]; }
+  function orb(i, iconName) {
+    return '<span class="ch-orb" aria-hidden="true"><span class="ch-ring"></span><span class="ch-num">' + (i + 1 < 10 ? "0" : "") + (i + 1) + "</span>" + icon(iconName || "check") + "</span>";
+  }
   function choice(href, label, desc, iconName, i, cls) {
-    var n = (i + 1 < 10 ? "0" : "") + (i + 1);
-    return '<a class="choice ' + (cls || "") + '" style="--i:' + i + ";--cc:" + (cls === "choice-win" ? "#7f1d1d" : CHOICE_COLORS[i % CHOICE_COLORS.length]) + '" href="' + href + '">' +
-      '<span class="ch-badge" aria-hidden="true"><span class="ch-tail"></span><span class="ch-disc">' + icon(iconName || "check") + "</span>" +
-      '<span class="ch-cap"><small>' + esc(DATA.ui.option) + "</small><b>" + n + "</b></span></span>" +
+    return '<a class="choice ' + (cls || "") + '" style="--i:' + i + ";--cc:" + (cls === "choice-win" ? "#e2462b" : choiceColor(i)) + '" href="' + href + '">' + orb(i, iconName) +
       '<span class="ch-title">' + esc(label) + "</span>" + (desc ? '<span class="ch-desc">' + esc(desc) + "</span>" : "") + "</a>";
+  }
+  // ---------------- missions (the game) ----------------
+  function missionText() { return LANG === "da" ? merge(window.MISSIONS.en, window.MISSIONS.da) : window.MISSIONS.en; }
+  function renderMissions() {
+    state = { kind: "menu" }; setChrome("solutions");
+    var t = missionText();
+    var items = [["align", t.align], ["interp", t.interp], ["control", t.control]].map(function (x, i) { return choice("#/m/" + x[0], x[1].tagline, x[1].title, x[1].icon, i); }).join("");
+    render(
+      '<section class="screen menu"><div class="container">' +
+      '<h2 class="h2 menu-title rise" style="--i:0">' + esc(t.menuTitle) + "</h2>" +
+      '<p class="mission rise" style="--i:1">' + esc(t.menuSub) + "</p>" +
+      '<div class="choices">' + items + "</div></div></section>"
+    );
+  }
+  function renderMission(id) {
+    if (["align", "interp", "brain", "steer", "control", "access", "monitor"].indexOf(id) < 0) return go("#/play");
+    state = { kind: "mission", id: id }; setChrome("step");
+    render('<section class="screen step mission-' + id + '"><div class="step-main">' +
+      '<div class="step-top rise" style="--i:0"><a class="back" href="' + (id === "access" || id === "monitor" ? "#/m/control" : id === "brain" || id === "steer" ? "#/m/interp" : "#/play") + '" aria-label="' + esc(DATA.ui.back) + '" title="' + esc(DATA.ui.back) + '">' + icon("back") + "</a></div>" +
+      '<div id="mission"></div></div></section>', function () {
+      window.Missions.render(document.getElementById("mission"), id, {
+        lang: LANG, t: missionText(), icon: icon, esc: esc, color: choiceColor, orb: orb, choice: choice, demoWords: DATA.ui.demo,
+        shutdownChoice: choice("#/win", DATA.solutions[2].root.paths[4].label, DATA.solutions[2].root.paths[4].fix, "power", 0, "choice-win"),
+        shutdown: function (i) { return choice("#/win", DATA.solutions[2].root.paths[4].label, DATA.solutions[2].root.paths[4].fix, "power", i, "choice-win"); },
+      });
+    });
   }
   function rise(i) { return ' class="rise" style="--i:' + i + '"'; }
 
@@ -107,6 +134,7 @@
   function render(html, after) {
     clearTimeout(timer);
     if (window.Demo) window.Demo.stop();
+    if (window.Missions) window.Missions.stop();
     var old = app.firstElementChild;
     var swap = function () {
       app.innerHTML = html;
@@ -241,10 +269,9 @@
 
   function route() {
     var h = location.hash.replace(/^#\/?/, "").split("/");
-    if (h[0] === "play" || h[0] === "end") renderMenu();
+    if (h[0] === "m" && h[1]) renderMission(h[1]);
     else if (h[0] === "win") renderWin();
-    else if (h[0] === "solutions" || h[0] === "why") renderMenu();
-    else if (h[0] === "s" && h[1]) renderStep(h[1], (h[2] || "r").replace(/^r/, "").replace(/[^0-9]/g, ""));
+    else if (h[0] === "play" || h[0] === "solutions" || h[0] === "end" || h[0] === "why" || h[0] === "s") renderMissions();
     else renderHome();
   }
 
@@ -285,7 +312,7 @@
     if (!state) return;
     var fwd = k === "ArrowRight" || k === "PageDown" || (k === " " && tag !== "BUTTON" && tag !== "A" && tag !== "SUMMARY");
     if (state.kind === "home" && (fwd || k === "Enter") && tag !== "A") { e.preventDefault(); return go("#/solutions"); }
-    if (state.kind === "menu" && /^[1-9]$/.test(k)) { if (DATA.solutions[+k - 1]) return go(stepHref(DATA.solutions[+k - 1], "")); }
+    if (state.kind === "menu" && /^[1-3]$/.test(k)) return go(["#/m/align", "#/m/interp", "#/m/control"][+k - 1]);
     if (state.kind !== "step") return;
     if (/^[1-9]$/.test(k) && state.node.paths && state.node.paths[+k - 1]) go(state.node.paths[+k - 1].win ? "#/win" : stepHref(state.sol, state.path + (+k - 1)));
     if (fwd && !state.node.paths) { e.preventDefault(); go("#/solutions"); }
