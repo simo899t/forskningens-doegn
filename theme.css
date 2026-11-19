@@ -448,7 +448,6 @@ details.readwhy[open] summary i { transform: rotate(45deg); }
 .m-drag-ghost { position: fixed; z-index: 60; transform: translate(-50%, -50%) rotate(-3deg); pointer-events: none; box-shadow: 5px 5px 0 var(--ink); }
 
 /* kiosk fullscreen + PIN */
-body.kiosk #fs-btn { opacity: 0.55; }
 .pin { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: rgba(242, 236, 224, 0.97); }
 .pin[hidden] { display: none; }
 .pin-box { text-align: center; padding: 34px 40px; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px; box-shadow: 8px 8px 0 var(--ink); }
@@ -464,6 +463,17 @@ body.kiosk #fs-btn { opacity: 0.55; }
 .pin-keys button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
 .pin-keys { grid-template-columns: repeat(3, 84px); }
 .pin-keys button { height: 84px; touch-action: manipulation; }
-#fs-btn, .home-btn, .lang-btn { min-height: 48px; padding-left: 20px; padding-right: 20px; touch-action: manipulation; }
+.set-btn, .home-btn, .lang-btn { min-height: 48px; padding-left: 20px; padding-right: 20px; touch-action: manipulation; }
 .home-btn { display: inline-flex; align-items: center; justify-content: center; }
 .pin-keys button, .chip-btn, .choice { -webkit-tap-highlight-color: transparent; }
+
+/* settings */
+.set-btn { width: 48px; padding: 0 !important; display: inline-grid; place-items: center; opacity: 0.6; }
+.set-btn svg { width: 22px; height: 22px; }
+.set-box { min-width: 420px; }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 0; border-bottom: 2px dashed #cfc6b5; font-weight: 600; font-size: 1.15em; }
+.set-box .set-close { margin-top: 24px; }
+.set-zoom { display: inline-flex; align-items: center; gap: 14px; }
+.set-zoom b { min-width: 64px; text-align: center; font-family: var(--mono); }
+.set-zoom button { width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--ink); background: var(--paper); box-shadow: 3px 3px 0 var(--ink); font: 700 1.6em var(--display); cursor: pointer; touch-action: manipulation; }
+.set-fs { width: auto; padding: 0; border: 0; background: none; box-shadow: none; }

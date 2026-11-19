@@ -281,7 +281,6 @@
     var u = DATA.ui;
     document.documentElement.lang = LANG;
     document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = u[el.getAttribute("data-t")]; });
-    if (window.fsLabelHook) window.fsLabelHook();
     langBtn.textContent = u.langButton; langBtn.title = u.langTitle; langBtn.setAttribute("aria-label", u.langTitle);
   }
   langBtn.addEventListener("click", function () {
@@ -291,38 +290,51 @@
   });
   applyChrome();
 
-  // ---------------- kiosk fullscreen: leaving it needs the PIN 123 ----------------
-  var PIN = "123", kiosk = false, typed = "";
-  var fsBtn = document.getElementById("fs-btn"), pinEl = document.getElementById("pin");
-  function enterFs() { var d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen || function () {}).call(d); }
+  // ---------------- settings (behind PIN 1612): fullscreen and zoom ----------------
+  var PIN = "1612", kiosk = false, typed = "", pinOk = null;
+  var pinEl = document.getElementById("pin"), setEl = document.getElementById("settings");
+  function enterFs() { var d = document.documentElement; var f = d.requestFullscreen || d.webkitRequestFullscreen; if (f) { var r = f.call(d); if (r && r.catch) r.catch(function () {}); } }
+  function exitFs() { var f = document.exitFullscreen || document.webkitExitFullscreen; if (f && isFs()) { var r = f.call(document); if (r && r.catch) r.catch(function () {}); } }
   function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
   function dots() { pinEl.querySelectorAll(".pin-dots i").forEach(function (d, i) { d.classList.toggle("on", i < typed.length); }); }
+  function askPin(ok) { pinOk = ok; typed = ""; dots(); pinEl.hidden = false; }
   pinEl.querySelector(".pin-keys").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map(function (k) {
     return k === "" ? "<span></span>" : '<button type="button" data-k="' + k + '">' + k + "</button>";
   }).join("");
   pinEl.querySelectorAll("[data-k]").forEach(function (b) {
     b.addEventListener("click", function () {
       var k = b.getAttribute("data-k");
-      if (k === "⌫") typed = typed.slice(0, -1); else if (typed.length < 3) typed += k;
+      if (k === "⌫") typed = typed.slice(0, -1); else if (typed.length < PIN.length) typed += k;
       dots();
-      if (typed.length === 3) {
-        if (typed === PIN) { kiosk = false; pinEl.hidden = true; document.body.classList.remove("kiosk"); fsLabel(); if (isFs()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+      if (typed.length === PIN.length) {
+        if (typed === PIN) { pinEl.hidden = true; if (pinOk) pinOk(); }
         else { pinEl.classList.add("wrong"); setTimeout(function () { pinEl.classList.remove("wrong"); typed = ""; dots(); }, 500); }
       }
     });
   });
-  window.fsLabelHook = function () { fsLabel(); };
-  function fsLabel() { fsBtn.textContent = DATA.ui[kiosk ? "fullscreenExit" : "fullscreen"]; }
-  function askPin() { typed = ""; dots(); pinEl.hidden = false; }
-  pinEl.querySelector(".pin-back").addEventListener("click", function () { pinEl.hidden = true; if (!isFs()) enterFs(); });
-  // on a touch screen there is no Esc key: the same button opens the PIN pad while in kiosk mode
-  fsBtn.addEventListener("click", function () {
-    if (kiosk) return askPin();
-    kiosk = true; document.body.classList.add("kiosk"); fsLabel(); enterFs();
-  });
+  pinEl.querySelector(".pin-back").addEventListener("click", function () { pinEl.hidden = true; });
   ["fullscreenchange", "webkitfullscreenchange"].forEach(function (ev) {
-    document.addEventListener(ev, function () { if (kiosk && !isFs()) askPin(); });
+    document.addEventListener(ev, function () { if (kiosk && !isFs()) { kiosk = false; document.body.classList.remove("kiosk"); setEl.querySelector(".set-fs").setAttribute("aria-pressed", "false"); } });
   });
+  function setKiosk(on) {
+    kiosk = on; document.body.classList.toggle("kiosk", on);
+    setEl.querySelector(".set-fs").setAttribute("aria-pressed", on ? "true" : "false");
+    if (on) enterFs(); else exitFs();
+  }
+  var ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6, 1.8, 2], zi = ZOOMS.indexOf(+load("ai-safety-zoom", 1));
+  if (zi < 0) zi = 2;
+  function applyZoom() {
+    document.getElementById("app").style.zoom = ZOOMS[zi];
+    setEl.querySelector(".set-zoom b").textContent = Math.round(ZOOMS[zi] * 100) + "%";
+    save("ai-safety-zoom", ZOOMS[zi]);
+  }
+  setEl.querySelectorAll("[data-z]").forEach(function (b) {
+    b.addEventListener("click", function () { zi = Math.max(0, Math.min(ZOOMS.length - 1, zi + +b.getAttribute("data-z"))); applyZoom(); });
+  });
+  setEl.querySelector(".set-fs").addEventListener("click", function () { setKiosk(!kiosk); });
+  setEl.querySelector(".set-close").addEventListener("click", function () { setEl.hidden = true; });
+  document.getElementById("set-btn").addEventListener("click", function () { askPin(function () { setEl.hidden = false; }); });
+  applyZoom();
 
   // ---------------- back to the landing page after 3 minutes without activity ----------------
   var idle = null;
