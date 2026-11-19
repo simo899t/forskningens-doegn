@@ -4,7 +4,7 @@
 .t-control { --c1: #ef4444; --c2: #a855f7; }
 
 /* Solutions page: one header, three options */
-.menu .container { min-height: calc(100vh - 168px); display: flex; flex-direction: column; justify-content: center; }
+.menu .container { min-height: calc(100vh / var(--zoom, 1) - 96px / var(--zoom, 1) - 72px); display: flex; flex-direction: column; justify-content: center; }
 .menu-title { text-align: center; margin: 0 auto 44px; max-width: 16ch; }
 .menu-title + .mission { text-align: center; margin: -28px auto 40px; color: var(--muted); font-family: var(--display); font-weight: 500; font-size: clamp(1.1rem, 2.6vw, 1.4rem); max-width: 34ch; }
 .tiles { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; }

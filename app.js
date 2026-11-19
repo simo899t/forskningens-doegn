@@ -324,7 +324,7 @@
   var ZOOMS = [0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6, 1.8, 2], zi = ZOOMS.indexOf(+load("ai-safety-zoom", 1));
   if (zi < 0) zi = 2;
   function applyZoom() {
-    document.getElementById("app").style.zoom = ZOOMS[zi];
+    var app = document.getElementById("app"); app.style.zoom = ZOOMS[zi]; app.style.setProperty("--zoom", ZOOMS[zi]);
     setEl.querySelector(".set-zoom b").textContent = Math.round(ZOOMS[zi] * 100) + "%";
     save("ai-safety-zoom", ZOOMS[zi]);
   }
