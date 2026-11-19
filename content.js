@@ -30,7 +30,7 @@ window.EXPLORER = {
   // Words used around the page (buttons, labels, the example apps).
   ui: {
     navSolutions: "Games",
-    present: "Present",
+    homeBtn: "Home",
     presentTitle: "Larger text for a projector (P)",
     langButton: "DA",
     langTitle: "Skift til dansk",

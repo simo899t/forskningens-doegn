@@ -14,7 +14,7 @@ window.EXPLORER_DA = {
 
   ui: {
     navSolutions: "Spil",
-    present: "Præsentér",
+    homeBtn: "Forside",
     presentTitle: "Større tekst til projektor (P)",
     langButton: "EN",
     langTitle: "Switch to English",
