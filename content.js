@@ -31,6 +31,10 @@ window.EXPLORER = {
   ui: {
     navSolutions: "Games",
     homeBtn: "Home",
+    fullscreen: "Fullscreen",
+    fullscreenExit: "Exit fullscreen",
+    pinTitle: "Enter the PIN to leave fullscreen",
+    pinBack: "Back to fullscreen",
     presentTitle: "Larger text for a projector (P)",
     langButton: "DA",
     langTitle: "Skift til dansk",

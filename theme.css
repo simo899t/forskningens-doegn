@@ -446,3 +446,24 @@ details.readwhy[open] summary i { transform: rotate(45deg); }
 .m-slot-ic { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--paper); border: 2px solid var(--ink); }
 .m-slot-ic svg { width: 18px; height: 18px; }
 .m-drag-ghost { position: fixed; z-index: 60; transform: translate(-50%, -50%) rotate(-3deg); pointer-events: none; box-shadow: 5px 5px 0 var(--ink); }
+
+/* kiosk fullscreen + PIN */
+body.kiosk #fs-btn { opacity: 0.55; }
+.pin { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: rgba(242, 236, 224, 0.97); }
+.pin[hidden] { display: none; }
+.pin-box { text-align: center; padding: 34px 40px; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px; box-shadow: 8px 8px 0 var(--ink); }
+.pin-title { margin: 0 0 18px; font-family: var(--display); font-weight: 800; font-size: 1.5em; }
+.pin-dots { display: flex; justify-content: center; gap: 14px; margin-bottom: 22px; }
+.pin-dots i { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--ink); }
+.pin-dots i.on { background: var(--ink); }
+.pin.wrong .pin-dots { animation: bump 0.4s; }
+.pin.wrong .pin-dots i { border-color: var(--danger); background: var(--danger); }
+@keyframes bump { 30% { transform: translateX(-8px); } 60% { transform: translateX(8px); } }
+.pin-keys { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px; justify-content: center; margin-bottom: 22px; }
+.pin-keys button { height: 72px; border-radius: 50%; border: 3px solid var(--ink); background: var(--paper); box-shadow: 3px 3px 0 var(--ink); font: 700 1.5em var(--display); cursor: pointer; }
+.pin-keys button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.pin-keys { grid-template-columns: repeat(3, 84px); }
+.pin-keys button { height: 84px; touch-action: manipulation; }
+#fs-btn, .home-btn, .lang-btn { min-height: 48px; padding-left: 20px; padding-right: 20px; touch-action: manipulation; }
+.home-btn { display: inline-flex; align-items: center; justify-content: center; }
+.pin-keys button, .chip-btn, .choice { -webkit-tap-highlight-color: transparent; }

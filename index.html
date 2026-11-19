@@ -10,12 +10,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..800,50,1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=37">
-  <link rel="stylesheet" href="tree.css?v=37">
-  <link rel="stylesheet" href="demos.css?v=37">
-  <link rel="stylesheet" href="game.css?v=37">
-  <link rel="stylesheet" href="missions.css?v=37">
-  <link rel="stylesheet" href="theme.css?v=37">
+  <link rel="stylesheet" href="style.css?v=39">
+  <link rel="stylesheet" href="tree.css?v=39">
+  <link rel="stylesheet" href="demos.css?v=39">
+  <link rel="stylesheet" href="game.css?v=39">
+  <link rel="stylesheet" href="missions.css?v=39">
+  <link rel="stylesheet" href="theme.css?v=39">
 </head>
 <body>
   <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -28,27 +28,35 @@
       <span>AI Safety Explorer</span>
     </a>
     <nav>
-      <a href="#/solutions" data-nav="solutions" data-t="navSolutions">Missions</a>
       <button id="lang-toggle" class="chip-btn lang-btn" type="button" title="Skift til dansk" aria-label="Skift til dansk">DA</button>
       <a class="chip-btn home-btn" href="#/" data-t="homeBtn">Home</a>
+      <button id="fs-btn" class="chip-btn" type="button" data-t="fullscreen">Fullscreen</button>
     </nav>
   </header>
 
   <main id="app" tabindex="-1"></main>
+  <div id="pin" class="pin" hidden>
+    <div class="pin-box">
+      <p class="pin-title" data-t="pinTitle">Enter the PIN to leave fullscreen</p>
+      <div class="pin-dots"><i></i><i></i><i></i></div>
+      <div class="pin-keys"></div>
+      <button type="button" class="btn primary pin-back" data-t="pinBack">Back to fullscreen</button>
+    </div>
+  </div>
 
   <div class="credit">
     <span class="credit-text"><span data-t="poweredBy">Powered by</span><br><strong data-t="poweredWho">students &amp; researchers</strong></span>
     <span class="credit-sep" aria-hidden="true"></span>
-    <img src="logo-sdu.png?v=37" alt="SDU Department of Mathematics and Computer Science" height="40">
+    <img src="logo-sdu.png?v=39" alt="SDU Department of Mathematics and Computer Science" height="40">
   </div>
 
   <noscript><p style="padding:24px;color:#fff">This page needs JavaScript to run.</p></noscript>
-  <script src="content.js?v=37"></script>
-  <script src="content.da.js?v=37"></script>
-  <script src="background.js?v=37"></script>
-  <script src="demos.js?v=37"></script>
-  <script src="missions-content.js?v=37"></script>
-  <script src="missions.js?v=37"></script>
-  <script src="app.js?v=37"></script>
+  <script src="content.js?v=39"></script>
+  <script src="content.da.js?v=39"></script>
+  <script src="background.js?v=39"></script>
+  <script src="demos.js?v=39"></script>
+  <script src="missions-content.js?v=39"></script>
+  <script src="missions.js?v=39"></script>
+  <script src="app.js?v=39"></script>
 </body>
 </html>

@@ -225,7 +225,7 @@ window.Missions = (function () {
       var after = el.querySelector("#m-after");
       after.innerHTML =
         '<div class="m-report"><p><span class="m-dot" style="background:' + removed.color + '"></span><b>' + c.esc(m.features[removed.id]) + "</b> ✓</p>" +
-        '<p class="m-hit">' + c.icon("alert") + c.esc(m.alsoHit) + " <b>" + c.esc(m.damage[removed.id]) + "</b></p></div>" +
+        '<p class="m-hit">' + c.icon("alert") + "<span>" + c.esc(m.alsoHit).replace("{x}", "<b>" + c.esc(m.features[removed.id]) + "</b>").replace("{y}", "<b>" + c.esc(m.damage[removed.id]) + "</b>") + "</span></p></div>" +
         '<div class="demo" id="m-chat"></div>' +
         '<div class="m-go"><button class="explore" type="button" data-putback><span>' + c.esc(m.putBack) + "</span>" + c.icon("redo") + "</button></div>";
       window.Demo.render(after.querySelector("#m-chat"), { type: "chat", app: m.app, lines: m.effects[removed.id] }, c.demoWords);
