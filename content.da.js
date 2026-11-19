@@ -15,6 +15,10 @@ window.EXPLORER_DA = {
   ui: {
     navSolutions: "Spil",
     homeBtn: "Forside",
+    fullscreen: "Fuld skærm",
+    fullscreenExit: "Luk fuld skærm",
+    pinTitle: "Indtast koden for at forlade fuld skærm",
+    pinBack: "Tilbage til fuld skærm",
     presentTitle: "Større tekst til projektor (P)",
     langButton: "EN",
     langTitle: "Switch to English",

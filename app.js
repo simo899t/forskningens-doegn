@@ -281,6 +281,7 @@
     var u = DATA.ui;
     document.documentElement.lang = LANG;
     document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = u[el.getAttribute("data-t")]; });
+    if (window.fsLabelHook) window.fsLabelHook();
     langBtn.textContent = u.langButton; langBtn.title = u.langTitle; langBtn.setAttribute("aria-label", u.langTitle);
   }
   langBtn.addEventListener("click", function () {
@@ -289,6 +290,39 @@
     DATA = build(); applyChrome(); route();
   });
   applyChrome();
+
+  // ---------------- kiosk fullscreen: leaving it needs the PIN 123 ----------------
+  var PIN = "123", kiosk = false, typed = "";
+  var fsBtn = document.getElementById("fs-btn"), pinEl = document.getElementById("pin");
+  function enterFs() { var d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen || function () {}).call(d); }
+  function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function dots() { pinEl.querySelectorAll(".pin-dots i").forEach(function (d, i) { d.classList.toggle("on", i < typed.length); }); }
+  pinEl.querySelector(".pin-keys").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map(function (k) {
+    return k === "" ? "<span></span>" : '<button type="button" data-k="' + k + '">' + k + "</button>";
+  }).join("");
+  pinEl.querySelectorAll("[data-k]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var k = b.getAttribute("data-k");
+      if (k === "⌫") typed = typed.slice(0, -1); else if (typed.length < 3) typed += k;
+      dots();
+      if (typed.length === 3) {
+        if (typed === PIN) { kiosk = false; pinEl.hidden = true; document.body.classList.remove("kiosk"); fsLabel(); if (isFs()) (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+        else { pinEl.classList.add("wrong"); setTimeout(function () { pinEl.classList.remove("wrong"); typed = ""; dots(); }, 500); }
+      }
+    });
+  });
+  window.fsLabelHook = function () { fsLabel(); };
+  function fsLabel() { fsBtn.textContent = DATA.ui[kiosk ? "fullscreenExit" : "fullscreen"]; }
+  function askPin() { typed = ""; dots(); pinEl.hidden = false; }
+  pinEl.querySelector(".pin-back").addEventListener("click", function () { pinEl.hidden = true; if (!isFs()) enterFs(); });
+  // on a touch screen there is no Esc key: the same button opens the PIN pad while in kiosk mode
+  fsBtn.addEventListener("click", function () {
+    if (kiosk) return askPin();
+    kiosk = true; document.body.classList.add("kiosk"); fsLabel(); enterFs();
+  });
+  ["fullscreenchange", "webkitfullscreenchange"].forEach(function (ev) {
+    document.addEventListener(ev, function () { if (kiosk && !isFs()) askPin(); });
+  });
 
   // ---------------- back to the landing page after 3 minutes without activity ----------------
   var idle = null;
