@@ -281,7 +281,6 @@
     var u = DATA.ui;
     document.documentElement.lang = LANG;
     document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = u[el.getAttribute("data-t")]; });
-    document.getElementById("present-toggle").title = u.presentTitle;
     langBtn.textContent = u.langButton; langBtn.title = u.langTitle; langBtn.setAttribute("aria-label", u.langTitle);
   }
   langBtn.addEventListener("click", function () {
@@ -291,15 +290,14 @@
   });
   applyChrome();
 
-  // ---------------- presenter mode ----------------
-  var toggle = document.getElementById("present-toggle");
-  function setPresent(on) {
-    document.body.classList.toggle("present", on);
-    toggle.setAttribute("aria-pressed", on ? "true" : "false");
-    save("ai-safety-present", on);
+  // ---------------- back to the landing page after 3 minutes without activity ----------------
+  var idle = null;
+  function poke() {
+    clearTimeout(idle);
+    idle = setTimeout(function () { if (location.hash && location.hash !== "#/") { go("#/"); window.scrollTo(0, 0); } }, 180000);
   }
-  toggle.addEventListener("click", function () { setPresent(!document.body.classList.contains("present")); });
-  setPresent(/[?&]present\b/.test(location.search) || load("ai-safety-present", false));
+  ["pointerdown", "pointermove", "keydown", "wheel", "touchstart", "scroll"].forEach(function (ev) { window.addEventListener(ev, poke, { passive: true }); });
+  poke();
 
   // ---------------- keyboard (projector / clicker) ----------------
   document.addEventListener("keydown", function (e) {
@@ -307,7 +305,6 @@
     var tag = (e.target && e.target.tagName) || "";
     if (tag === "INPUT" || tag === "TEXTAREA") return;
     var k = e.key;
-    if (k === "p" || k === "P") return setPresent(!document.body.classList.contains("present"));
     if (k === "Escape") return go("#/solutions");
     if (!state) return;
     var fwd = k === "ArrowRight" || k === "PageDown" || (k === " " && tag !== "BUTTON" && tag !== "A" && tag !== "SUMMARY");
